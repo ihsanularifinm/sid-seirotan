@@ -23,3 +23,12 @@ go.work.sum
 
 # env file
 .env
+backend/.env
+
+# Air live reload temporary directory
+/backend/tmp
+
+# Abaikan semua file di dalam folder uploads
+/backend/uploads/*
+
+table_db.dbml

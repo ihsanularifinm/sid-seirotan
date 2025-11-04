@@ -1,0 +1,175 @@
+
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import { useRouter, useParams } from 'next/navigation';
+import AdminLayout from '@/components/layout/AdminLayout';
+import Cookies from 'js-cookie';
+
+const schema = yup.object().shape({
+  title: yup.string().required('Judul tidak boleh kosong'),
+  description: yup.string(),
+  cover_image_url: yup.string().url('URL tidak valid'),
+  type: yup.string().oneOf(['umkm', 'tourism', 'agriculture', 'other']).required('Tipe tidak boleh kosong'),
+});
+
+type PotentialFormData = yup.InferType<typeof schema>;
+
+export default function EditPotentialPage() {
+  const router = useRouter();
+  const params = useParams();
+  const potentialId = params.id as string;
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<PotentialFormData>({
+    resolver: yupResolver(schema),
+  });
+
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchPotential = async () => {
+      if (!potentialId) return;
+      setLoading(true);
+      try {
+        const res = await fetch(`http://localhost:8081/api/v1/potentials/${potentialId}`);
+        if (!res.ok) {
+          throw new Error('Failed to fetch potential');
+        }
+        const data = await res.json();
+        setValue('title', data.title);
+        setValue('description', data.description);
+        setValue('cover_image_url', data.cover_image_url);
+        setValue('type', data.type);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPotential();
+  }, [potentialId, setValue]);
+
+  const onSubmit = async (data: PotentialFormData) => {
+    setSubmitting(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const token = Cookies.get('jwt_token');
+      if (!token) {
+        throw new Error('Unauthorized: No token found');
+      }
+
+      const res = await fetch(`http://localhost:8081/api/v1/admin/potentials/${potentialId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'Failed to update potential');
+      }
+
+      setSuccess('Potential updated successfully!');
+      router.push('/admin/potentials');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <AdminLayout><p>Loading...</p></AdminLayout>;
+  }
+
+  return (
+    <AdminLayout>
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Potensi</h1>
+
+      {success && <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">{success}</div>}
+      {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">Error: {error}</div>}
+
+      <div className="bg-white shadow-md rounded-lg p-6">
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className="mb-4">
+            <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">Judul</label>
+            <input
+              type="text"
+              id="title"
+              {...register('title')}
+              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.title ? 'border-red-500' : ''}`}
+            />
+            {errors.title && <p className="text-red-500 text-xs italic">{errors.title.message}</p>}
+          </div>
+          <div className="mb-4">
+            <label htmlFor="description" className="block text-gray-700 text-sm font-bold mb-2">Deskripsi</label>
+            <textarea
+              id="description"
+              {...register('description')}
+              rows={5}
+              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.description ? 'border-red-500' : ''}`}
+            ></textarea>
+            {errors.description && <p className="text-red-500 text-xs italic">{errors.description.message}</p>}
+          </div>
+          <div className="mb-4">
+            <label htmlFor="cover_image_url" className="block text-gray-700 text-sm font-bold mb-2">URL Gambar Sampul</label>
+            <input
+              type="text"
+              id="cover_image_url"
+              {...register('cover_image_url')}
+              className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.cover_image_url ? 'border-red-500' : ''}`}
+            />
+            {errors.cover_image_url && <p className="text-red-500 text-xs italic">{errors.cover_image_url.message}</p>}
+          </div>
+          <div className="mb-6">
+            <label htmlFor="type" className="block text-gray-700 text-sm font-bold mb-2">Tipe</label>
+            <select
+              id="type"
+              {...register('type')}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            >
+              <option value="umkm">UMKM</option>
+              <option value="tourism">Pariwisata</option>
+              <option value="agriculture">Pertanian</option>
+              <option value="other">Lainnya</option>
+            </select>
+            {errors.type && <p className="text-red-500 text-xs italic">{errors.type.message}</p>}
+          </div>
+          <div className="flex items-center justify-between">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:bg-gray-400"
+            >
+              {submitting ? 'Menyimpan...' : 'Update Potensi'}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push('/admin/potentials')}
+              className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            >
+              Batal
+            </button>
+          </div>
+        </form>
+      </div>
+    </AdminLayout>
+  );
+}

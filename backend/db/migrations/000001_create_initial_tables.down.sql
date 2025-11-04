@@ -1,0 +1,11 @@
+DROP TABLE IF EXISTS news;
+DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS village_officials;
+DROP TABLE IF EXISTS services;
+DROP TABLE IF EXISTS potentials;
+DROP TABLE IF EXISTS site_settings;
+DROP TABLE IF EXISTS contacts;
+
+DROP TYPE IF EXISTS user_role;
+DROP TYPE IF EXISTS news_status;
+DROP TYPE IF EXISTS potential_type;

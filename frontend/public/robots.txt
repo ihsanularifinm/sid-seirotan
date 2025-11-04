@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://seirotan.desa.id/sitemap.xml
