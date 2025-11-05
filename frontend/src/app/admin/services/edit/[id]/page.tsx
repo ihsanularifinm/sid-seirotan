@@ -48,8 +48,10 @@ export default function EditServicePage() {
         setValue('service_name', data.service_name);
         setValue('description', data.description);
         setValue('requirements', data.requirements);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -85,8 +87,10 @@ export default function EditServicePage() {
 
       setSuccess('Service updated successfully!');
       router.push('/admin/services');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }

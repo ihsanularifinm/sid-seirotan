@@ -1,81 +1,23 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
+import Image from 'next/image';
+import { useEffect } from 'react';
 import * as yup from 'yup';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 
-const schema = yup.object().shape({
-  name: yup.string().required('Nama tidak boleh kosong'),
-  position: yup.string().required('Jabatan tidak boleh kosong'),
-  bio: yup.string(),
-  display_order: yup.number().typeError('Urutan tampil harus angka').required('Urutan tampil tidak boleh kosong'),
-});
+
 
 type OfficialFormData = yup.InferType<typeof schema>;
 
 export default function EditOfficialForm() {
   const router = useRouter();
   const params = useParams();
-  const officialId = params.id as string;
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm<OfficialFormData>({
-    resolver: yupResolver(schema),
-  });
-
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
-  const [newImagePreviewUrl, setNewImagePreviewUrl] = useState<string | null>(null);
-  const [selectedPosition, setSelectedPosition] = useState<string>("");
-  const [dusunNumber, setDusunNumber] = useState<string>("");
-  const [customPosition, setCustomPosition] = useState<string>("");
-
-  const positions = [
-    "Kepala Desa",
-    "BPD",
-    "Sekretaris Desa",
-    "Kaur Umum",
-    "Kaur Keuangan",
-    "Kaur Perencanaan",
-    "Kasi Pemerintahan",
-    "Kasi Kesejahteraan",
-    "Kasi Pelayanan",
-    "Kepala Dusun",
-    "Other",
-  ];
+  const officialId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   useEffect(() => {
-    if (selectedPosition === "Kepala Dusun") {
-      setValue("position", dusunNumber ? `Kepala Dusun ${dusunNumber}` : "Kepala Dusun");
-    } else if (selectedPosition === "Other") {
-      setValue("position", customPosition);
-    } else {
-      setValue("position", selectedPosition);
-    }
-  }, [selectedPosition, dusunNumber, customPosition, setValue]);
-
-  useEffect(() => {
-    // Cleanup the object URL when the component unmounts or a new file is selected
-    return () => {
-      if (newImagePreviewUrl) {
-        URL.revokeObjectURL(newImagePreviewUrl);
-      }
-    };
-  }, [newImagePreviewUrl]);
-
-  useEffect(() => {
+    if (!officialId) return;
     const fetchOfficial = async () => {
       if (!officialId) return;
       setLoading(true);
@@ -106,15 +48,17 @@ export default function EditOfficialForm() {
           setSelectedPosition("Other");
           setCustomPosition(position);
         }
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchOfficial();
-  }, [officialId, setValue]);
+  }, [officialId]);
 
   const onSubmit = async (data: OfficialFormData) => {
     setSubmitting(true);
@@ -167,8 +111,10 @@ export default function EditOfficialForm() {
 
       setSuccess('Village official updated successfully!');
       router.push('/admin/officials');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -246,11 +192,11 @@ export default function EditOfficialForm() {
             <label htmlFor="photo" className="block text-gray-700 text-sm font-bold mb-2">Foto</label>
             {newImagePreviewUrl ? (
               <div className="mb-2">
-                <img src={newImagePreviewUrl} alt="New Image Preview" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={newImagePreviewUrl} alt="New Image Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             ) : existingImageUrl && (
               <div className="mb-2">
-                <img src={`http://localhost:8081${existingImageUrl}`} alt="Existing Official Photo" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={`http://localhost:8081${existingImageUrl}`} alt="Existing Official Photo" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

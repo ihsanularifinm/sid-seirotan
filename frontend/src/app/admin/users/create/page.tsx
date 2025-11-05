@@ -42,8 +42,10 @@ const CreateUserPage = () => {
       }
 
       router.push('/admin/users');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

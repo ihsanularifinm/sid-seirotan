@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 
@@ -15,7 +14,7 @@ type Potential = {
 };
 
 export default function AdminPotentialsPage() {
-  const router = useRouter();
+
   const [potentials, setPotentials] = useState<Potential[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,8 +40,10 @@ export default function AdminPotentialsPage() {
 
         const data: Potential[] = await res.json();
         setPotentials(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -72,8 +73,10 @@ export default function AdminPotentialsPage() {
         }
 
         setPotentials(potentials.filter((potential) => potential.id !== id));
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       }
     }
   };

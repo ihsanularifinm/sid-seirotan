@@ -1,8 +1,7 @@
 import { Metadata } from "next";
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const awaitedParams = await params;
-  const news: News = await getNewsDetail(awaitedParams.slug);
+  const news: News = await getNewsDetail(params.slug);
   const plainContent = news.content.replace(/<[^>]*>?/gm, ''); // Simple way to strip HTML tags for description
 
   return {
@@ -28,14 +27,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 import Image from 'next/image';
 
-type News = {
-  id: number;
-  title: string;
-  content: string;
-  slug: string;
-  created_at: string;
-  featured_image_url: string;
-};
+import { News } from '@/types/news';
 
 async function getNewsDetail(slug: string) {
   const res = await fetch(`http://localhost:8081/api/v1/posts/slug/${slug}`);
@@ -46,8 +38,7 @@ async function getNewsDetail(slug: string) {
 }
 
 export default async function DetailBeritaPage({ params }: { params: { slug: string } }) {
-  const awaitedParams = await params;
-  const news: News = await getNewsDetail(awaitedParams.slug);
+  const news: News = await getNewsDetail(params.slug);
 
   const jsonLd = {
     '@context': 'https://schema.org',

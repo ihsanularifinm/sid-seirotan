@@ -51,8 +51,10 @@ export default function EditPotentialPage() {
         setValue('description', data.description);
         setValue('cover_image_url', data.cover_image_url);
         setValue('type', data.type);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -88,8 +90,10 @@ export default function EditPotentialPage() {
 
       setSuccess('Potential updated successfully!');
       router.push('/admin/potentials');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }

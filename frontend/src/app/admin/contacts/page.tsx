@@ -40,8 +40,10 @@ export default function AdminContactsPage() {
 
         const data: Contact[] = await res.json();
         setContacts(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }

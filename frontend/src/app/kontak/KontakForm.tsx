@@ -40,8 +40,10 @@ export default function KontakForm() {
 
       setSuccess(true);
       setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }

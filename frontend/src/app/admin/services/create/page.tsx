@@ -58,8 +58,10 @@ export default function CreateServicePage() {
       setSuccess('Service created successfully!');
       reset();
       router.push('/admin/services');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }

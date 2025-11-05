@@ -63,8 +63,10 @@ export default function CreatePotentialPage() {
       setSuccess('Potential created successfully!');
       reset();
       router.push('/admin/potentials');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }

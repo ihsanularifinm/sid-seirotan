@@ -3,7 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 
@@ -14,7 +13,7 @@ type Service = {
 };
 
 export default function AdminServicesPage() {
-  const router = useRouter();
+
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,8 +39,10 @@ export default function AdminServicesPage() {
 
         const data: Service[] = await res.json();
         setServices(data);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -71,8 +72,10 @@ export default function AdminServicesPage() {
         }
 
         setServices(services.filter((service) => service.id !== id));
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       }
     }
   };

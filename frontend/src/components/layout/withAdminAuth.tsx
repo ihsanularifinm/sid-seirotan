@@ -10,12 +10,14 @@ const withAdminAuth = <P extends object>(WrappedComponent: React.ComponentType<P
     const [isAuthorized, setIsAuthorized] = useState(false);
 
     useEffect(() => {
+      let isAuthorized = false;
       const userRole = Cookies.get('user_role');
       if (userRole === 'admin' || userRole === 'superadmin') {
-        setIsAuthorized(true);
+        isAuthorized = true;
       } else {
-        router.push('/admin/dashboard');
+        router.push('/admin/login');
       }
+      setTimeout(() => setIsAuthorized(isAuthorized), 0);
     }, [router]);
 
     if (!isAuthorized) {

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -96,8 +97,10 @@ export default function CreateNewsPage() {
       setSuccess('News created successfully!');
       reset(); // Clear form
       router.push('/admin/news'); // Redirect to news list
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +139,7 @@ export default function CreateNewsPage() {
             <label htmlFor="featured_image" className="block text-gray-700 text-sm font-bold mb-2">Gambar Unggulan</label>
             {imagePreviewUrl && (
               <div className="mb-2">
-                <img src={imagePreviewUrl} alt="Image Preview" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={imagePreviewUrl} alt="Image Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

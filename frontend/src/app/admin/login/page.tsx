@@ -35,8 +35,10 @@ export default function LoginPage() {
 
       // Redirect to the dashboard
       router.push('/admin/dashboard');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

@@ -38,8 +38,10 @@ const EditUserPage = () => {
         setFullName(data.full_name);
         setUsername(data.username);
         setRole(data.role);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setInitialLoading(false);
       }
@@ -57,7 +59,7 @@ const EditUserPage = () => {
       const token = Cookies.get('jwt_token');
       if (!token) throw new Error('Unauthorized');
 
-      const payload: any = { full_name: fullName, username, role };
+      const payload: { full_name: string; username: string; role: string; password?: string } = { full_name: fullName, username, role };
       if (password) {
         payload.password = password;
       }
@@ -77,8 +79,10 @@ const EditUserPage = () => {
       }
 
       router.push('/admin/users');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

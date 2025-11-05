@@ -1,21 +1,14 @@
 'use client';
 
+import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
+import { positions } from '@/data/positions';
 import { useState, useEffect } from 'react';
-
-const schema = yup.object().shape({
-  name: yup.string().required('Nama tidak boleh kosong'),
-  position: yup.string().required('Jabatan tidak boleh kosong'),
-  bio: yup.string(),
-  display_order: yup.number().typeError('Urutan tampil harus angka').required('Urutan tampil tidak boleh kosong'),
-});
-
-type OfficialFormData = yup.InferType<typeof schema>;
 
 export default function CreateVillageOfficialPage() {
   const router = useRouter();
@@ -56,38 +49,7 @@ export default function CreateVillageOfficialPage() {
     }
   }, [officials, setValue]);
 
-  const positions = [
-    "Kepala Desa",
-    "BPD",
-    "Sekretaris Desa",
-    "Kaur Umum",
-    "Kaur Keuangan",
-    "Kaur Perencanaan",
-    "Kasi Pemerintahan",
-    "Kasi Kesejahteraan",
-    "Kasi Pelayanan",
-    "Kepala Dusun",
-    "Other",
-  ];
 
-  useEffect(() => {
-    if (selectedPosition === "Kepala Dusun") {
-      setValue("position", dusunNumber ? `Kepala Dusun ${dusunNumber}` : "Kepala Dusun");
-    } else if (selectedPosition === "Other") {
-      setValue("position", customPosition);
-    } else {
-      setValue("position", selectedPosition);
-    }
-  }, [selectedPosition, dusunNumber, customPosition, setValue]);
-
-  useEffect(() => {
-    // Cleanup the object URL when the component unmounts or a new file is selected
-    return () => {
-      if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-      }
-    };
-  }, [imagePreviewUrl]);
 
   const onSubmit = async (data: OfficialFormData) => {
     setSubmitting(true);
@@ -141,8 +103,10 @@ export default function CreateVillageOfficialPage() {
       setSuccess('Village official created successfully!');
       reset();
       router.push('/admin/officials');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -212,7 +176,7 @@ export default function CreateVillageOfficialPage() {
             <label htmlFor="photo" className="block text-gray-700 text-sm font-bold mb-2">Foto</label>
             {imagePreviewUrl && (
               <div className="mb-2">
-                <img src={imagePreviewUrl} alt="Image Preview" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={imagePreviewUrl} alt="Image Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

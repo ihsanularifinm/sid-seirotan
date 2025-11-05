@@ -44,8 +44,10 @@ const AdminUsersPage = () => {
 
       const data = await res.json();
       setUsers(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -81,8 +83,10 @@ const AdminUsersPage = () => {
 
       setDeleteMessage('User deleted successfully!');
       setUsers(users.filter(item => item.id !== id));
-    } catch (err: any) {
-      setDeleteMessage(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setDeleteMessage(`Error: ${err.message}`);
+      }
     }
   };
 

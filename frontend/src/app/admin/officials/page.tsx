@@ -44,8 +44,10 @@ export default function AdminVillageOfficialsPage() {
 
       const data = await res.json();
       setOfficials(data || []);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -81,8 +83,10 @@ export default function AdminVillageOfficialsPage() {
 
       setDeleteMessage('Village official deleted successfully!');
       setOfficials(officials.filter(item => item.id !== id));
-    } catch (err: any) {
-      setDeleteMessage(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setDeleteMessage(`Error: ${err.message}`);
+      }
     }
   };
 

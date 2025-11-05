@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -19,13 +20,16 @@ type NewsFormData = yup.InferType<typeof schema>;
 export default function EditNewsForm() {
   const router = useRouter();
   const params = useParams();
-  const newsId = params.id as string;
+  const newsId = Array.isArray(params.id) ? params.id[0] : params.id;
+
+  useEffect(() => {
+    if (!newsId) return;
+  }, [newsId]);
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
     setValue,
   } = useForm<NewsFormData>({
     resolver: yupResolver(schema),
@@ -62,8 +66,10 @@ export default function EditNewsForm() {
         setValue('content', data.content);
         setValue('status', data.status);
         setExistingImageUrl(data.featured_image_url);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }
@@ -123,8 +129,10 @@ export default function EditNewsForm() {
 
       setSuccess('News updated successfully!');
       router.push('/admin/news');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -171,11 +179,11 @@ export default function EditNewsForm() {
             <label htmlFor="featured_image" className="block text-gray-700 text-sm font-bold mb-2">Gambar Unggulan</label>
             {newImagePreviewUrl ? (
               <div className="mb-2">
-                <img src={newImagePreviewUrl} alt="New Image Preview" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={newImagePreviewUrl} alt="New Image Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             ) : existingImageUrl && (
               <div className="mb-2">
-                <img src={`http://localhost:8081${existingImageUrl}`} alt="Existing Featured Image" className="w-32 h-32 object-cover rounded-md" />
+                <Image src={`http://localhost:8081${existingImageUrl}`} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

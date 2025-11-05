@@ -42,8 +42,10 @@ export default function AdminNewsPage() {
 
       const data = await res.json();
       setNews(data.data || []); // Ensure news is an array
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -80,8 +82,10 @@ export default function AdminNewsPage() {
       setDeleteMessage('News deleted successfully!');
       // Refresh the list after deletion
       setNews(news.filter(item => item.id !== id));
-    } catch (err: any) {
-      setDeleteMessage(`Error: ${err.message}`);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setDeleteMessage(`Error: ${err.message}`);
+      }
     }
   };
 
