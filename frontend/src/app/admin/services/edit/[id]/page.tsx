@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } => 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter, useParams } from 'next/navigation';
