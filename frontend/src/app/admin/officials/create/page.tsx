@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
+import { OfficialFormData, schema } from '@/types/official';
 
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
