@@ -8,6 +8,8 @@ import Cookies from 'js-cookie';
 import { useState } from 'react';
 import { schema, ServiceFormData } from '@/types/service';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export default function CreateServicePage() {
   const router = useRouter();
   const {
@@ -33,7 +35,7 @@ export default function CreateServicePage() {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch('http://localhost:8081/api/v1/admin/services', {
+      const res = await fetch(`${apiUrl}/api/v1/admin/services`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

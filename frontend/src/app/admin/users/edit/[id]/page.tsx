@@ -9,6 +9,8 @@ import Cookies from 'js-cookie';
 import { editSchema, EditUserFormData } from '@/types/user';
 import withAdminAuth from '@/components/layout/withAdminAuth';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 const EditUserPage = () => {
   const router = useRouter();
   const params = useParams();
@@ -35,7 +37,7 @@ const EditUserPage = () => {
         const token = Cookies.get('jwt_token');
         if (!token) throw new Error('Unauthorized');
 
-        const res = await fetch(`http://localhost:8081/api/v1/admin/users/${id}`, {
+        const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
 
@@ -74,7 +76,7 @@ const EditUserPage = () => {
         payload.password = data.password;
       }
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/users/${id}`, {
+      const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

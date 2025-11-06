@@ -39,15 +39,61 @@ Ini adalah proyek website untuk Desa Sei Rotan, yang dibangun dengan Go untuk ba
     go mod tidy
     ```
 
-3.  **Konfigurasi environment:**
-    Buat file `.env` di folder `backend` dan isi dengan konfigurasi database:
+### Konfigurasi Environment
+
+Proyek ini menggunakan file `.env` untuk konfigurasi. Contoh file `.env.example` disediakan di setiap direktori yang memerlukannya.
+
+1.  **Root Direktori:**
+
+    Buat file `.env` di direktori utama dan isi dengan variabel untuk `docker-compose`:
+
+    ```bash
+    # Variabel untuk docker-compose.yml
+    POSTGRES_DB=your_postgres_db
+    POSTGRES_USER=your_postgres_user
+    POSTGRES_PASSWORD=your_postgres_password
     ```
-    DB_HOST=localhost
-    DB_USER=user
-    DB_PASSWORD=password
-    DB_NAME=desa_sei_rotan
-    DB_PORT=5432
+
+2.  **Backend:**
+
+    Salin `.env.example` menjadi `.env` di dalam direktori `backend`:
+
+    ```bash
+    cp backend/.env.example backend/.env
+    ```
+
+    Sesuaikan variabel di `backend/.env`:
+
+    ```
+    # Konfigurasi database PostgreSQL
+    POSTGRES_HOST=localhost
+    POSTGRES_USER=your_postgres_user
+    POSTGRES_PASSWORD=your_postgres_password
+    POSTGRES_DB=your_postgres_db
+    POSTGRES_PORT=5433
+
+    # Konfigurasi server backend
+    PORT=8081
+
+    # Konfigurasi CORS
+    CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001
+
+    # Konfigurasi JWT
     JWT_SECRET=your_jwt_secret
+    ```
+
+3.  **Frontend:**
+
+    Salin `.env.local.example` menjadi `.env.local` di dalam direktori `frontend`:
+
+    ```bash
+    cp frontend/.env.local.example frontend/.env.local
+    ```
+
+    Sesuaikan variabel di `frontend/.env.local`:
+
+    ```
+    NEXT_PUBLIC_API_URL=http://localhost:8081
     ```
 
 4.  **Jalankan migrasi database:**

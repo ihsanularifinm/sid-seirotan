@@ -9,6 +9,8 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { schema, NewsFormData } from '@/types/news';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export default function EditNewsForm() {
   const router = useRouter();
   const params = useParams();
@@ -49,7 +51,7 @@ export default function EditNewsForm() {
       if (!newsId) return;
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:8081/api/v1/posts/${newsId}`);
+        const res = await fetch(`${apiUrl}/api/v1/posts/${newsId}`);
         if (!res.ok) {
           throw new Error('Failed to fetch news');
         }
@@ -86,7 +88,7 @@ export default function EditNewsForm() {
         const formData = new FormData();
         formData.append('file', uploadedFile);
 
-        const uploadRes = await fetch('http://localhost:8081/api/v1/admin/upload', {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -105,7 +107,7 @@ export default function EditNewsForm() {
 
       const newsData = { ...data, featured_image_url };
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/posts/${newsId}`, {
+      const res = await fetch(`${apiUrl}/api/v1/admin/posts/${newsId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -175,7 +177,7 @@ export default function EditNewsForm() {
               </div>
             ) : existingImageUrl && (
               <div className="mb-2">
-                <Image src={`http://localhost:8081${existingImageUrl}`} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
+                <Image src={`${apiUrl}${existingImageUrl}`} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

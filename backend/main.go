@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -47,7 +48,11 @@ func main() {
 
 	// Configure CORS
 	configCORS := cors.DefaultConfig()
-	configCORS.AllowOrigins = []string{"http://localhost:3001"}
+	origins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	if origins == "" {
+		origins = "http://localhost:3001,http://localhost:3000" // Fallback
+	}
+	configCORS.AllowOrigins = strings.Split(origins, ",")
 	configCORS.AllowMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
 	configCORS.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
 	configCORS.AllowCredentials = true

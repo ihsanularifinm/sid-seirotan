@@ -9,6 +9,8 @@ import Cookies from 'js-cookie';
 import { schema, UserFormData } from '@/types/user';
 import withAdminAuth from '@/components/layout/withAdminAuth';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 const CreateUserPage = () => {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +37,7 @@ const CreateUserPage = () => {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch('http://localhost:8081/api/v1/admin/users', {
+      const res = await fetch(`${apiUrl}/api/v1/admin/users`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

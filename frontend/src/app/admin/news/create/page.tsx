@@ -9,6 +9,8 @@ import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { schema, NewsFormData } from '@/types/news';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export default function CreateNewsPage() {
   const router = useRouter();
   const {
@@ -53,7 +55,7 @@ export default function CreateNewsPage() {
         const formData = new FormData();
         formData.append('file', uploadedFile);
 
-        const uploadRes = await fetch('http://localhost:8081/api/v1/admin/upload', {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -72,7 +74,7 @@ export default function CreateNewsPage() {
 
       const newsData = { ...data, featured_image_url };
 
-      const res = await fetch('http://localhost:8081/api/v1/admin/posts', {
+      const res = await fetch(`${apiUrl}/api/v1/admin/posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

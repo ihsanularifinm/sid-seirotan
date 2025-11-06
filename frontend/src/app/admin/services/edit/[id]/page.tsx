@@ -8,6 +8,8 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { schema, ServiceFormData } from '@/types/service';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 export default function EditServicePage() {
   const router = useRouter();
   const params = useParams();
@@ -32,7 +34,7 @@ export default function EditServicePage() {
       if (!serviceId) return;
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:8081/api/v1/services/${serviceId}`);
+        const res = await fetch(`${apiUrl}/api/v1/services/${serviceId}`);
         if (!res.ok) {
           throw new Error('Failed to fetch service');
         }
@@ -63,7 +65,7 @@ export default function EditServicePage() {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/services/${serviceId}`, {
+      const res = await fetch(`${apiUrl}/api/v1/admin/services/${serviceId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

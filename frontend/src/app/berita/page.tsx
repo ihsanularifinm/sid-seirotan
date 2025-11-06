@@ -22,6 +22,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import Pagination from '@/components/layout/Pagination';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
 type News = {
   id: number;
@@ -40,7 +41,7 @@ type NewsApiResponse = {
 };
 
 async function getNews(page: number = 1) {
-  const res = await fetch(`http://localhost:8081/api/v1/posts?page=${page}&limit=9`);
+  const res = await fetch(`${apiUrl}/api/v1/posts?page=${page}&limit=9`);
   if (!res.ok) {
     throw new Error('Failed to fetch news');
   }
@@ -48,8 +49,7 @@ async function getNews(page: number = 1) {
 }
 
 export default async function BeritaPage({ searchParams }: { searchParams?: { [key: string]: string | string[] | undefined } }) {
-  const awaitedSearchParams = await searchParams;
-  const page = typeof awaitedSearchParams?.page === 'string' ? Number(awaitedSearchParams.page) : 1;
+  const page = typeof searchParams?.page === 'string' ? Number(searchParams.page) : 1;
   const { data: news, currentPage, totalPages }: NewsApiResponse = await getNews(page);
 
   const jsonLd = {
@@ -92,7 +92,7 @@ export default async function BeritaPage({ searchParams }: { searchParams?: { [k
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {news.map((item) => (
           <Link href={`/berita/${item.slug}`} key={item.id} className="block bg-white rounded-lg shadow-md overflow-hidden group">
-            <Image src={item.featured_image_url ? `http://localhost:8081${item.featured_image_url}` : '/assets/img/placeholder.png'} alt={item.title} width={400} height={250} className="w-full h-48 object-cover group-hover:opacity-80 transition" unoptimized />
+            <Image src={item.featured_image_url ? `${apiUrl}${item.featured_image_url}` : '/assets/img/placeholder.png'} alt={item.title} width={400} height={250} className="w-full h-48 object-cover group-hover:opacity-80 transition" unoptimized />
             <div className="p-6">
               <p className="text-sm text-gray-500 mb-2">{new Date(item.created_at).toLocaleDateString()}</p>
               <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600">{item.title}</h3>

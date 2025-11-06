@@ -11,6 +11,8 @@ import Cookies from 'js-cookie';
 import { schema } from '@/types/official';
 import { positions } from '@/data/positions';
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
 type OfficialFormData = yup.InferType<typeof schema>;
 
 export default function EditOfficialForm() {
@@ -44,7 +46,7 @@ export default function EditOfficialForm() {
       setLoading(true);
       try {
         const token = Cookies.get('jwt_token');
-        const res = await fetch(`http://localhost:8081/api/v1/admin/officials/${officialId}`, {
+        const res = await fetch(`${apiUrl}/api/v1/admin/officials/${officialId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
@@ -79,7 +81,7 @@ export default function EditOfficialForm() {
     };
 
     fetchOfficial();
-  }, [officialId]);
+  }, [officialId, setValue]);
 
   const onSubmit = async (data: OfficialFormData) => {
     setSubmitting(true);
@@ -97,7 +99,7 @@ export default function EditOfficialForm() {
         const formData = new FormData();
         formData.append('file', uploadedFile);
 
-        const uploadRes = await fetch('http://localhost:8081/api/v1/admin/upload', {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -116,7 +118,7 @@ export default function EditOfficialForm() {
 
       const officialData = { ...data, photo_url };
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/officials/${officialId}`, {
+      const res = await fetch(`${apiUrl}/api/v1/admin/officials/${officialId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -217,7 +219,7 @@ export default function EditOfficialForm() {
               </div>
             ) : existingImageUrl && (
               <div className="mb-2">
-                <Image src={`http://localhost:8081${existingImageUrl}`} alt="Existing Official Photo" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
+                <Image src={`${apiUrl}${existingImageUrl}`} alt="Existing Official Photo" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input
