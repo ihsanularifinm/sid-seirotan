@@ -2,19 +2,11 @@
 
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { useState } from 'react';
-
-const schema = yup.object().shape({
-  service_name: yup.string().required('Nama layanan tidak boleh kosong'),
-  description: yup.string().required('Deskripsi tidak boleh kosong'),
-  requirements: yup.string(),
-});
-
-type ServiceFormData = yup.InferType<typeof schema>;
+import { schema, ServiceFormData } from '@/types/service';
 
 export default function CreateServicePage() {
   const router = useRouter();

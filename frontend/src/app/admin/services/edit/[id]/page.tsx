@@ -1,20 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } => 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
-
-const schema = yup.object().shape({
-  service_name: yup.string().required('Nama layanan tidak boleh kosong'),
-  description: yup.string().required('Deskripsi tidak boleh kosong'),
-  requirements: yup.string(),
-});
-
-type ServiceFormData = yup.InferType<typeof schema>;
+import { schema, ServiceFormData } from '@/types/service';
 
 export default function EditServicePage() {
   const router = useRouter();

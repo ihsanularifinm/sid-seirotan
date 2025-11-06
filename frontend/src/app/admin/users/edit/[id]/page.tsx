@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
-
+import { editSchema, EditUserFormData } from '@/types/user';
 import withAdminAuth from '@/components/layout/withAdminAuth';
 
 const EditUserPage = () => {
@@ -12,13 +14,18 @@ const EditUserPage = () => {
   const params = useParams();
   const { id } = params;
 
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState(''); // Leave empty to not change
-  const [role, setRole] = useState('author');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<EditUserFormData>({
+    resolver: yupResolver(editSchema),
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -35,9 +42,9 @@ const EditUserPage = () => {
         if (!res.ok) throw new Error('Failed to fetch user data');
 
         const data = await res.json();
-        setFullName(data.full_name);
-        setUsername(data.username);
-        setRole(data.role);
+        setValue('full_name', data.full_name);
+        setValue('username', data.username);
+        setValue('role', data.role);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -48,10 +55,9 @@ const EditUserPage = () => {
     };
 
     fetchUser();
-  }, [id]);
+  }, [id, setValue]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: EditUserFormData) => {
     setLoading(true);
     setError(null);
 
@@ -59,9 +65,13 @@ const EditUserPage = () => {
       const token = Cookies.get('jwt_token');
       if (!token) throw new Error('Unauthorized');
 
-      const payload: { full_name: string; username: string; role: string; password?: string } = { full_name: fullName, username, role };
-      if (password) {
-        payload.password = password;
+      const payload: { full_name: string; username: string; role: string; password?: string } = { 
+        full_name: data.full_name, 
+        username: data.username, 
+        role: data.role 
+      };
+      if (data.password) {
+        payload.password = data.password;
       }
 
       const res = await fetch(`http://localhost:8081/api/v1/admin/users/${id}`, {
@@ -96,50 +106,48 @@ const EditUserPage = () => {
     <AdminLayout>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Pengguna</h1>
       <div className="bg-white p-8 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
-            <label htmlFor="fullName" className="block text-gray-700 font-semibold mb-2">Nama Lengkap</label>
+            <label htmlFor="full_name" className="block text-gray-700 font-semibold mb-2">Nama Lengkap</label>
             <input
-              id="fullName"
+              id="full_name"
               type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              {...register('full_name')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.full_name ? 'border-red-500' : ''}`}
             />
+            {errors.full_name && <p className="text-red-500 text-xs italic">{errors.full_name.message}</p>}
           </div>
           <div className="mb-4">
             <label htmlFor="username" className="block text-gray-700 font-semibold mb-2">Username</label>
             <input
               id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              {...register('username')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.username ? 'border-red-500' : ''}`}
             />
+            {errors.username && <p className="text-red-500 text-xs italic">{errors.username.message}</p>}
           </div>
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-700 font-semibold mb-2">Password (kosongkan jika tidak ingin diubah)</label>
             <input
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register('password')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : ''}`}
             />
+            {errors.password && <p className="text-red-500 text-xs italic">{errors.password.message}</p>}
           </div>
           <div className="mb-6">
             <label htmlFor="role" className="block text-gray-700 font-semibold mb-2">Role</label>
             <select
               id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register('role')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.role ? 'border-red-500' : ''}`}
             >
               <option value="author">Author</option>
               <option value="admin">Admin</option>
             </select>
+            {errors.role && <p className="text-red-500 text-xs italic">{errors.role.message}</p>}
           </div>
           <div className="flex items-center">
             <button

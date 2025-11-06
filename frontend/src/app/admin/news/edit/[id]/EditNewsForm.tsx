@@ -4,18 +4,10 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
-
-const schema = yup.object().shape({
-  title: yup.string().required('Judul tidak boleh kosong'),
-  content: yup.string().required('Isi berita tidak boleh kosong'),
-  status: yup.string().oneOf(['draft', 'published', 'archived']).required(),
-});
-
-type NewsFormData = yup.InferType<typeof schema>;
+import { schema, NewsFormData } from '@/types/news';
 
 export default function EditNewsForm() {
   const router = useRouter();

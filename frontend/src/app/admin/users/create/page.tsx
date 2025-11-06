@@ -2,22 +2,30 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
-
+import { schema, UserFormData } from '@/types/user';
 import withAdminAuth from '@/components/layout/withAdminAuth';
 
 const CreateUserPage = () => {
   const router = useRouter();
-  const [fullName, setFullName] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('author');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserFormData>({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      role: 'author',
+    },
+  });
+
+  const onSubmit = async (data: UserFormData) => {
     setLoading(true);
     setError(null);
 
@@ -33,7 +41,7 @@ const CreateUserPage = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ full_name: fullName, username, password, role }),
+        body: JSON.stringify(data),
       });
 
       if (!res.ok) {
@@ -55,51 +63,48 @@ const CreateUserPage = () => {
     <AdminLayout>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Tambah Pengguna Baru</h1>
       <div className="bg-white p-8 rounded-lg shadow-md">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
-            <label htmlFor="fullName" className="block text-gray-700 font-semibold mb-2">Nama Lengkap</label>
+            <label htmlFor="full_name" className="block text-gray-700 font-semibold mb-2">Nama Lengkap</label>
             <input
-              id="fullName"
+              id="full_name"
               type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              {...register('full_name')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.full_name ? 'border-red-500' : ''}`}
             />
+            {errors.full_name && <p className="text-red-500 text-xs italic">{errors.full_name.message}</p>}
           </div>
           <div className="mb-4">
             <label htmlFor="username" className="block text-gray-700 font-semibold mb-2">Username</label>
             <input
               id="username"
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              {...register('username')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.username ? 'border-red-500' : ''}`}
             />
+            {errors.username && <p className="text-red-500 text-xs italic">{errors.username.message}</p>}
           </div>
           <div className="mb-4">
             <label htmlFor="password" className="block text-gray-700 font-semibold mb-2">Password</label>
             <input
               id="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
+              {...register('password')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.password ? 'border-red-500' : ''}`}
             />
+            {errors.password && <p className="text-red-500 text-xs italic">{errors.password.message}</p>}
           </div>
           <div className="mb-6">
             <label htmlFor="role" className="block text-gray-700 font-semibold mb-2">Role</label>
             <select
               id="role"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              {...register('role')}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${errors.role ? 'border-red-500' : ''}`}
             >
               <option value="author">Author</option>
               <option value="admin">Admin</option>
             </select>
+            {errors.role && <p className="text-red-500 text-xs italic">{errors.role.message}</p>}
           </div>
           <div className="flex items-center">
             <button

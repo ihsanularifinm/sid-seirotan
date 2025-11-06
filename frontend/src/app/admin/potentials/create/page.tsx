@@ -1,22 +1,12 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { useState } from 'react';
-
-const schema = yup.object().shape({
-  title: yup.string().required('Judul tidak boleh kosong'),
-  description: yup.string(),
-  cover_image_url: yup.string().url('URL tidak valid'),
-  type: yup.string().oneOf(['umkm', 'tourism', 'agriculture', 'other']).required('Tipe tidak boleh kosong'),
-});
-
-type PotentialFormData = yup.InferType<typeof schema>;
+import { schema, PotentialFormData } from '@/types/potential';
 
 export default function CreatePotentialPage() {
   const router = useRouter();
