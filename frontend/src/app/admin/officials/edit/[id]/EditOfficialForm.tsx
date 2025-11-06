@@ -1,13 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import * as yup from 'yup';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
-
-
+import { schema } from '@/types/official';
+import { positions } from '@/data/positions';
 
 type OfficialFormData = yup.InferType<typeof schema>;
 
@@ -15,6 +17,25 @@ export default function EditOfficialForm() {
   const router = useRouter();
   const params = useParams();
   const officialId = Array.isArray(params.id) ? params.id[0] : params.id;
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [existingImageUrl, setExistingImageUrl] = useState<string | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<string>('');
+  const [dusunNumber, setDusunNumber] = useState<string>('');
+  const [customPosition, setCustomPosition] = useState<string>('');
+  const [newImagePreviewUrl, setNewImagePreviewUrl] = useState<string | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+  } = useForm<OfficialFormData>({
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
     if (!officialId) return;
