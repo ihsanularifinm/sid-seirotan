@@ -42,7 +42,12 @@ type NewsApiResponse = {
 };
 
 async function getNews(page: number = 1) {
-  const res = await fetch(`${apiUrl}/api/v1/posts?page=${page}&limit=9`);
+  // Use localhost for server-side rendering (build time), and public URL for client-side
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
+
+  const res = await fetch(`${apiBaseUrl}/api/v1/posts?page=${page}&limit=9`);
   if (!res.ok) {
     throw new Error('Failed to fetch news');
   }
