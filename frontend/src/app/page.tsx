@@ -1,5 +1,8 @@
 import { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Selamat Datang di Website Resmi Desa Sei Rotan",
   description: "Website resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang. Dapatkan informasi terbaru tentang layanan, berita, potensi, dan pemerintahan desa.",
