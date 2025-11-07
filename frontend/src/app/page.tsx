@@ -1,8 +1,5 @@
 import { Metadata } from "next";
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 export const metadata: Metadata = {
   title: "Selamat Datang di Website Resmi Desa Sei Rotan",
   description: "Website resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang. Dapatkan informasi terbaru tentang layanan, berita, potensi, dan pemerintahan desa.",
@@ -43,7 +40,9 @@ type VillageOfficial = {
 };
 
 async function getNews() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
   const res = await fetch(`${apiBaseUrl}/api/v1/posts`);
   if (!res.ok) {
     throw new Error('Failed to fetch news');
@@ -52,7 +51,9 @@ async function getNews() {
 }
 
 async function getOfficials() {
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
   const res = await fetch(`${apiBaseUrl}/api/v1/officials`);
   if (!res.ok) {
     throw new Error('Failed to fetch officials');
