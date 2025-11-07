@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import { Suspense } from 'react';
 
 export const metadata: Metadata = {
   title: "Berita Terbaru dari Desa Sei Rotan",
@@ -102,7 +103,9 @@ export default async function BeritaPage({ searchParams }: { searchParams?: { [k
         ))}
       </div>
 
-      <Pagination currentPage={currentPage} totalPages={totalPages} />
+            <Suspense fallback={<div className="text-center"><p>Loading pagination...</p></div>}>
+        <Pagination currentPage={currentPage} totalPages={totalPages} />
+      </Suspense>
     </main>
   );
 }
