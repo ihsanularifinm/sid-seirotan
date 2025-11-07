@@ -31,7 +31,8 @@ export default function AdminVillageOfficialsPage() {
         // If we later make this admin-only, we'll need the token.
       }
 
-      const res = await fetch('http://localhost:8081/api/v1/officials', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/v1/officials`, {
         headers: {
           'Authorization': token ? `Bearer ${token}` : '',
         },
@@ -69,7 +70,8 @@ export default function AdminVillageOfficialsPage() {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch(`http://localhost:8081/api/v1/officials/${id}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/v1/officials/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

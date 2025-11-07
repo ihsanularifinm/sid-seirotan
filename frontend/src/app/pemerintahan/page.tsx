@@ -28,7 +28,10 @@ type VillageOfficial = {
 };
 
 async function getOfficials() {
-  const res = await fetch('http://localhost:8081/api/v1/officials');
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
+  const res = await fetch(`${apiBaseUrl}/api/v1/officials`);
   if (!res.ok) {
     throw new Error('Failed to fetch officials');
   }
@@ -37,6 +40,7 @@ async function getOfficials() {
 
 export default async function PemerintahanPage() {
   const officials: VillageOfficial[] = await getOfficials();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -47,7 +51,7 @@ export default async function PemerintahanPage() {
       '@type': 'Person',
       name: official.name,
       jobTitle: official.position,
-      image: official.photo_url ? `http://localhost:8081${official.photo_url}` : 'https://seirotan.desa.id/assets/img/placeholder.png',
+      image: official.photo_url ? `${apiUrl}${official.photo_url}` : 'https://seirotan.desa.id/assets/img/placeholder.png',
     })),
   };
 
@@ -62,7 +66,7 @@ export default async function PemerintahanPage() {
         {officials.map((official) => (
           <div key={official.id} className="text-center">
             <Image
-              src={official.photo_url ? `http://localhost:8081${official.photo_url}` : '/assets/img/placeholder.png'}
+              src={official.photo_url ? `${apiUrl}${official.photo_url}` : '/assets/img/placeholder.png'}
               alt={`Foto ${official.name}`}
               width={150}
               height={150}

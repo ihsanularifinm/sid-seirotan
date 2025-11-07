@@ -31,7 +31,8 @@ const AdminUsersPage = () => {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch('http://localhost:8081/api/v1/admin/users', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/v1/admin/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -69,7 +70,8 @@ const AdminUsersPage = () => {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/users/${id}`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/v1/admin/users/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

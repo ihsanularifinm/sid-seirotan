@@ -26,7 +26,10 @@ type Service = {
 };
 
 async function getServices() {
-  const res = await fetch('http://localhost:8081/api/v1/services');
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
+  const res = await fetch(`${apiBaseUrl}/api/v1/services`);
   if (!res.ok) {
     throw new Error('Failed to fetch services');
   }

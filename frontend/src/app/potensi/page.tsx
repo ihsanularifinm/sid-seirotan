@@ -29,7 +29,10 @@ type Potential = {
 };
 
 async function getPotentials() {
-  const res = await fetch('http://localhost:8081/api/v1/potentials');
+  const apiBaseUrl = typeof window === 'undefined' 
+    ? 'http://localhost:8081' 
+    : process.env.NEXT_PUBLIC_API_URL;
+  const res = await fetch(`${apiBaseUrl}/api/v1/potentials`);
   if (!res.ok) {
     throw new Error('Failed to fetch potentials');
   }

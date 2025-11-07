@@ -25,7 +25,8 @@ export default function KontakForm() {
     setSuccess(false);
 
     try {
-      const res = await fetch('http://localhost:8081/api/v1/contacts', {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      const res = await fetch(`${apiUrl}/api/v1/contacts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
