@@ -36,7 +36,7 @@ export default function CreateVillageOfficialPage() {
 
   useEffect(() => {
     const fetchOfficials = async () => {
-      const res = await fetch(`${apiUrl}/api/v1/officials');
+            const res = await fetch(`${apiUrl}/api/v1/officials`);
       const data = await res.json();
       setOfficials(data);
     };
