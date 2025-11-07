@@ -12,7 +12,7 @@ export type UserFormData = yup.InferType<typeof schema>;
 export const editSchema = yup.object().shape({
   full_name: yup.string().required('Nama lengkap tidak boleh kosong'),
   username: yup.string().required('Username tidak boleh kosong'),
-  password: yup.string().optional(),
+    password: yup.string().optional().default(''),
   role: yup.string().oneOf(['admin', 'author']).required('Role tidak boleh kosong'),
 });
 
