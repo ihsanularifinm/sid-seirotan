@@ -4,19 +4,12 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
+import { schema, PotentialFormData } from '@/types/potential';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 
-const schema = yup.object().shape({
-  title: yup.string().required('Judul tidak boleh kosong'),
-  description: yup.string(),
-  cover_image_url: yup.string().url('URL tidak valid'),
-  type: yup.string().oneOf(['umkm', 'tourism', 'agriculture', 'other']).required('Tipe tidak boleh kosong'),
-});
 
-type PotentialFormData = yup.InferType<typeof schema>;
 
 export default function EditPotentialPage() {
   const router = useRouter();
@@ -37,12 +30,16 @@ export default function EditPotentialPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+// ... (rest of the component)
+
   useEffect(() => {
     const fetchPotential = async () => {
       if (!potentialId) return;
       setLoading(true);
       try {
-        const res = await fetch(`http://localhost:8081/api/v1/potentials/${potentialId}`);
+        const res = await fetch(`${apiUrl}/api/v1/potentials/${potentialId}`);
         if (!res.ok) {
           throw new Error('Failed to fetch potential');
         }
@@ -74,7 +71,7 @@ export default function EditPotentialPage() {
         throw new Error('Unauthorized: No token found');
       }
 
-      const res = await fetch(`http://localhost:8081/api/v1/admin/potentials/${potentialId}`, {
+            const res = await fetch(`${apiUrl}/api/v1/admin/potentials/${potentialId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
