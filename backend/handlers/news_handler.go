@@ -71,8 +71,44 @@ type UpdateNewsInput struct {
 	FeaturedImageURL string `json:"featured_image_url"`
 }
 
-// GetAllNews retrieves all news posts with pagination
-func (h *NewsHandler) GetAllNews(c *gin.Context) {
+// GetAllNewsForAdmin retrieves all news posts with pagination for the admin panel
+func (h *NewsHandler) GetAllNewsForAdmin(c *gin.Context) {
+	pageStr := c.DefaultQuery("page", "1")
+	limitStr := c.DefaultQuery("limit", "10")
+
+	page, err := strconv.Atoi(pageStr)
+	if err != nil || page < 1 {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(limitStr)
+	if err != nil || limit < 1 {
+		limit = 10
+	}
+
+	news, total, err := h.NewsRepository.GetAllNewsForAdmin(page, limit)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve news"})
+		return
+	}
+
+	totalPages := (total + int64(limit) - 1) / int64(limit)
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":         news,
+		"currentPage":  page,
+		"totalPages":   totalPages,
+		"totalItems":   total,
+	})
+
+	log.Printf("DEBUG GetAllNews: returning %d news items", len(news))
+	for _, n := range news {
+		log.Printf("DEBUG GetAllNews: news item ID %d has slug '%s'", n.ID, n.Slug)
+	}
+}
+
+// GetPublishedNews retrieves all news posts with pagination
+func (h *NewsHandler) GetPublishedNews(c *gin.Context) {
 	pageStr := c.DefaultQuery("page", "1")
 	limitStr := c.DefaultQuery("limit", "10")
 

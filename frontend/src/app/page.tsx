@@ -40,9 +40,7 @@ type VillageOfficial = {
 };
 
 async function getNews() {
-  const apiBaseUrl = typeof window === 'undefined' 
-    ? 'http://localhost:8081' 
-    : process.env.NEXT_PUBLIC_API_URL;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
   const res = await fetch(`${apiBaseUrl}/api/v1/posts`);
   if (!res.ok) {
     throw new Error('Failed to fetch news');
@@ -51,9 +49,7 @@ async function getNews() {
 }
 
 async function getOfficials() {
-  const apiBaseUrl = typeof window === 'undefined' 
-    ? 'http://localhost:8081' 
-    : process.env.NEXT_PUBLIC_API_URL;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
   const res = await fetch(`${apiBaseUrl}/api/v1/officials`);
   if (!res.ok) {
     throw new Error('Failed to fetch officials');

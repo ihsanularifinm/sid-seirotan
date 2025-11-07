@@ -11,6 +11,7 @@ type NewsRepository interface {
 	GetNewsByID(id uint64) (*models.News, error)
 	GetNewsBySlug(slug string) (*models.News, error)
 	GetAllNews(page, limit int) ([]models.News, int64, error)
+	GetAllNewsForAdmin(page, limit int) ([]models.News, int64, error)
 	UpdateNews(news *models.News) error
 	DeleteNews(id uint64) error
 	IsSlugExist(slug string, currentID uint64) (bool, error)
@@ -47,6 +48,26 @@ func (r *GormNewsRepository) GetNewsBySlug(slug string) (*models.News, error) {
 
 // GetAllNews retrieves all news posts with pagination
 func (r *GormNewsRepository) GetAllNews(page, limit int) ([]models.News, int64, error) {
+	var news []models.News
+	var total int64
+
+	offset := (page - 1) * limit
+
+	// Get total count
+	if err := r.db.Model(&models.News{}).Where("status = ?", models.NewsStatusPublished).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	// Get paginated data
+	if err := r.db.Preload("Author").Where("status = ?", models.NewsStatusPublished).Order("created_at DESC").Offset(offset).Limit(limit).Find(&news).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return news, total, nil
+}
+
+// GetAllNewsForAdmin retrieves all news posts with pagination for the admin panel
+func (r *GormNewsRepository) GetAllNewsForAdmin(page, limit int) ([]models.News, int64, error) {
 	var news []models.News
 	var total int64
 

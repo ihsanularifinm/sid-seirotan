@@ -9,7 +9,7 @@ import (
 // SetupPublicRoutes configures all public-facing API routes
 func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler) {
 	public.Static("/uploads", "uploads")
-	public.GET("/posts", newsHandler.GetAllNews)
+	public.GET("/posts", newsHandler.GetPublishedNews)
 	public.GET("/posts/:id", newsHandler.GetNewsByID)
 	public.GET("/posts/slug/:slug", newsHandler.GetNewsBySlug)
 	public.GET("/officials", villageOfficialHandler.GetAllVillageOfficials)
@@ -48,7 +48,7 @@ func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler,
 	newsRoutes := admin.Group("/posts")
 	newsRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
 	{
-		newsRoutes.GET("", newsHandler.GetAllNews)
+		newsRoutes.GET("", newsHandler.GetAllNewsForAdmin)
 		newsRoutes.POST("", newsHandler.CreateNews)
 		newsRoutes.PUT("/:id", newsHandler.UpdateNews)
 		newsRoutes.DELETE("/:id", newsHandler.DeleteNews)
