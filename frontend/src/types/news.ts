@@ -6,7 +6,7 @@ export type News = {
   content: string;
   slug: string;
   created_at: string;
-  featured_image_url: string;
+    featured_image_url?: string;
 };
 
 export const schema = yup.object().shape({
