@@ -8,6 +8,7 @@ import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { schema, NewsFormData } from '@/types/news';
+import { getMediaUrl } from '@/lib/mediaUrl';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -177,7 +178,7 @@ export default function EditNewsForm() {
               </div>
             ) : existingImageUrl && (
               <div className="mb-2">
-                <Image src={`${apiUrl}${existingImageUrl}`} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
+                <Image src={getMediaUrl(existingImageUrl)} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
               </div>
             )}
             <input

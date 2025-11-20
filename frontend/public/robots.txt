@@ -1,4 +1,23 @@
+# robots.txt for Desa Sei Rotan
+# https://seirotan.desa.id
+
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /api/
 
+# Sitemap
 Sitemap: https://seirotan.desa.id/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
+
+# Google
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/

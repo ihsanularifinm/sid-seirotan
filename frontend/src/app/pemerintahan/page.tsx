@@ -23,10 +23,10 @@ export const dynamic = 'force-dynamic';
 import Image from 'next/image';
 
 import { getOfficials, VillageOfficial } from "../../services/api";
+import { getMediaUrl } from "@/lib/mediaUrl";
 
 export default async function PemerintahanPage() {
   const officials: VillageOfficial[] = await getOfficials();
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -37,7 +37,7 @@ export default async function PemerintahanPage() {
       '@type': 'Person',
       name: official.name,
       jobTitle: official.position,
-      image: official.photo_url ? `${apiUrl}${official.photo_url}` : 'https://seirotan.desa.id/assets/img/placeholder.png',
+      image: getMediaUrl(official.photo_url),
     })),
   };
 
@@ -52,7 +52,7 @@ export default async function PemerintahanPage() {
         {officials.map((official) => (
           <div key={official.id} className="text-center">
             <Image
-              src={official.photo_url ? `${apiUrl}${official.photo_url}` : '/assets/img/placeholder.png'}
+              src={getMediaUrl(official.photo_url)}
               alt={`Foto ${official.name}`}
               width={150}
               height={150}

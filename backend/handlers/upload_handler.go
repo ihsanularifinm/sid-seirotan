@@ -27,5 +27,5 @@ func UploadFile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"url": fmt.Sprintf("/api/v1/uploads/%s", filename)})
+	c.JSON(http.StatusOK, gin.H{"url": fmt.Sprintf("/uploads/%s", filename)})
 }

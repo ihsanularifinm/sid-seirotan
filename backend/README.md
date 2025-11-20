@@ -15,6 +15,7 @@ Backend ini dibangun menggunakan Go dengan framework Gin.
 
 -   `/config`: Konfigurasi database
 -   `/db/migrations`: File migrasi SQL
+-   `/db/seeds`: Script SQL untuk data awal (seed data)
 -   `/handlers`: Logika bisnis untuk setiap endpoint
 -   `/middlewares`: Middleware untuk autentikasi dan otorisasi
 -   `/models`: Definisi struct untuk tabel database
@@ -37,6 +38,20 @@ Lihat panduan di README utama untuk menjalankan aplikasi menggunakan Docker Comp
     go run main.go
     ```
 
+## Seed Data
+
+Untuk mengisi database dengan data awal (hero sliders dan site settings), jalankan script seed:
+
+```bash
+# Menggunakan psql
+psql -U your_username -d your_database -f backend/db/seeds/seed_hero_sliders_and_settings.sql
+
+# Atau menggunakan Docker
+docker exec -i your_postgres_container psql -U your_username -d your_database < backend/db/seeds/seed_hero_sliders_and_settings.sql
+```
+
+Lihat dokumentasi lengkap di `backend/db/seeds/README.md`.
+
 ## API Endpoints
 
 API di-prefix dengan `/api/v1`.
@@ -47,10 +62,13 @@ API di-prefix dengan `/api/v1`.
 -   `GET /posts/slug/:slug`: Mendapatkan detail berita berdasarkan slug
 -   `GET /officials`: Mendapatkan semua aparatur desa
 -   `GET /potentials`: Mendapatkan semua potensi desa
+-   `GET /hero-sliders`: Mendapatkan hero sliders aktif
+-   `GET /settings`: Mendapatkan semua site settings
+-   `GET /settings/:group`: Mendapatkan settings berdasarkan group
 -   `POST /contacts`: Mengirim pesan kontak
 
 ### Admin (Membutuhkan Autentikasi)
 
 -   `POST /admin/login`: Login untuk mendapatkan token JWT
 -   `POST /admin/upload`: Mengunggah file
--   Manajemen CRUD untuk Berita, Aparatur Desa, Layanan, Potensi, dan Pengguna.
+-   Manajemen CRUD untuk Berita, Aparatur Desa, Layanan, Potensi, Pengguna, Hero Sliders, dan Site Settings.

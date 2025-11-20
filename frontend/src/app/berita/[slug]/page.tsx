@@ -1,10 +1,9 @@
 import { Metadata } from "next";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-
 export const dynamic = 'force-dynamic';
 
 import DOMPurify from 'isomorphic-dompurify';
+import { getMediaUrl } from '@/lib/mediaUrl';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const awaitedParams = await params;
@@ -22,7 +21,7 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       publishedTime: new Date(news.created_at).toISOString(),
       images: [
         {
-          url: news.featured_image_url ? `${apiUrl}${news.featured_image_url}` : 'https://seirotan.desa.id/assets/img/hero-image.jpg',
+          url: getMediaUrl(news.featured_image_url),
           width: 1200,
           height: 630,
           alt: news.title,
@@ -53,7 +52,7 @@ export default async function DetailBeritaPage({ params }: { params: { slug: str
       '@id': `https://seirotan.desa.id/berita/${news.slug}`,
     },
     headline: news.title,
-    image: news.featured_image_url ? `${apiUrl}${news.featured_image_url}` : 'https://seirotan.desa.id/assets/img/hero-image.jpg',
+    image: getMediaUrl(news.featured_image_url),
     datePublished: new Date(news.created_at).toISOString(),
     author: {
       '@type': 'Organization',
@@ -86,7 +85,7 @@ export default async function DetailBeritaPage({ params }: { params: { slug: str
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">{news.title}</h1>
         <p className="text-gray-500 text-sm mt-4">Dipublikasikan pada {new Date(news.created_at).toLocaleDateString()}</p>
 
-        <Image src={news.featured_image_url ? `${apiUrl}${news.featured_image_url}` : '/assets/img/berita1-large.jpg'} alt={news.title} width={800} height={450} className="w-full h-auto my-8 rounded-lg" />
+        <Image src={getMediaUrl(news.featured_image_url)} alt={news.title} width={800} height={450} className="w-full h-auto my-8 rounded-lg" />
 
         <div className="prose max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(news.content) }} />
       </article>

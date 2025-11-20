@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { HeroSlider as HeroSliderType } from '@/types/hero-slider';
 import { getHeroSliders } from '@/services/api';
+import { getMediaUrl } from '@/lib/mediaUrl';
 import Link from 'next/link';
 
 export default function HeroSlider() {
@@ -79,7 +80,7 @@ export default function HeroSlider() {
   const currentSlider = sliders[currentIndex];
 
   return (
-    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden">
+    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[600px] overflow-hidden bg-gray-900">
       {/* Slider Content */}
       <div className="relative w-full h-full">
         {sliders.map((slider, index) => (
@@ -89,42 +90,50 @@ export default function HeroSlider() {
               index === currentIndex ? 'opacity-100' : 'opacity-0'
             }`}
           >
-            {/* Media (Image or Video) */}
-            {slider.media_type === 'video' ? (
-              <video
-                src={slider.media_url}
-                className="w-full h-full object-cover"
-                autoPlay
-                loop
-                muted
-                playsInline
-              />
-            ) : (
-              <img
-                src={slider.media_url}
-                alt={slider.title}
-                className="w-full h-full object-cover"
-              />
-            )}
+            {/* Media (Image or Video) - Base Layer */}
+            <div className="absolute inset-0 z-0">
+              {slider.media_type === 'video' ? (
+                <video
+                  src={getMediaUrl(slider.media_url)}
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={getMediaUrl(slider.media_url)}
+                  alt={slider.title}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Failed to load image:', getMediaUrl(slider.media_url));
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/assets/img/placeholder.png';
+                  }}
+                />
+              )}
+            </div>
 
-            {/* Overlay */}
-            <div className="absolute inset-0 bg-black bg-opacity-40" />
+            {/* Overlay - Middle Layer */}
+            <div className="absolute inset-0 bg-black bg-opacity-40 z-10" />
 
-            {/* Content */}
-            <div className="absolute inset-0 flex items-center justify-center">
+            {/* Content - Top Layer */}
+            <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
               <div className="text-center text-white px-4 max-w-4xl">
-                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 animate-fade-in">
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 drop-shadow-lg">
                   {slider.title}
                 </h1>
                 {slider.subtitle && (
-                  <p className="text-lg md:text-xl lg:text-2xl mb-6 animate-fade-in-delay">
+                  <p className="text-lg md:text-xl lg:text-2xl mb-6 drop-shadow-lg">
                     {slider.subtitle}
                   </p>
                 )}
                 {slider.link_url && slider.link_text && (
                   <Link
                     href={slider.link_url}
-                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 animate-fade-in-delay-2"
+                    className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-colors duration-300 shadow-lg pointer-events-auto"
                   >
                     {slider.link_text}
                   </Link>
@@ -140,7 +149,7 @@ export default function HeroSlider() {
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-full transition-all duration-300"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-30 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all duration-300 shadow-lg"
             aria-label="Previous slide"
           >
             <svg
@@ -159,7 +168,7 @@ export default function HeroSlider() {
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 text-white p-3 rounded-full transition-all duration-300"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-30 bg-black bg-opacity-50 hover:bg-opacity-70 text-white p-3 rounded-full transition-all duration-300 shadow-lg"
             aria-label="Next slide"
           >
             <svg
@@ -181,15 +190,15 @@ export default function HeroSlider() {
 
       {/* Dots Navigation */}
       {sliders.length > 1 && (
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
           {sliders.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`h-3 rounded-full transition-all duration-300 shadow-md ${
                 index === currentIndex
                   ? 'bg-white w-8'
-                  : 'bg-white bg-opacity-50 hover:bg-opacity-75'
+                  : 'bg-white bg-opacity-60 hover:bg-opacity-90 w-3'
               }`}
               aria-label={`Go to slide ${index + 1}`}
             />

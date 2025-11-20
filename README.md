@@ -62,7 +62,25 @@ Cara termudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
     - User superadmin akan dibuat otomatis dengan username `superadmin`
     - Tunggu hingga semua services ready (sekitar 30-60 detik)
 
-4.  **Akses Aplikasi:**
+4.  **Load Seed Data (Opsional):**
+    Untuk mengisi database dengan data contoh (hero sliders dan site settings):
+    ```bash
+    cat backend/db/seeds/seed_hero_sliders_and_settings.sql | docker exec -i sid-seirotan-db-1 psql -U admin -d sid_sei_rotan_db
+    ```
+    
+    Atau jika menggunakan Docker Compose:
+    ```bash
+    docker compose exec db psql -U admin -d sid_sei_rotan_db -f /path/to/seed_hero_sliders_and_settings.sql
+    ```
+    
+    Seed data mencakup:
+    - 3 hero sliders untuk homepage
+    - Site settings lengkap (general, profile, social)
+    - Data profil desa yang siap digunakan
+    
+    Lihat dokumentasi lengkap di `backend/db/seeds/README.md`
+
+5.  **Akses Aplikasi:**
     -   **Frontend:** [http://localhost:3000](http://localhost:3000)
     -   **Backend API:** [http://localhost:8080](http://localhost:8080)
     -   **Database:** Port `5432`
@@ -70,7 +88,7 @@ Cara termudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
         - Username: `superadmin`
         - Password: Sesuai `SUPERADMIN_DEFAULT_PASSWORD` di `.env`
 
-5.  **Troubleshooting:**
+6.  **Troubleshooting:**
     Jika ada masalah, lihat [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Instalasi Manual

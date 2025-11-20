@@ -2,16 +2,18 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, Users, Briefcase, Zap, MessageSquare } from 'lucide-react';
+import { Home, Newspaper, Users, Briefcase, Zap, MessageSquare, Image, Settings } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
+  { href: '/admin/hero-sliders', label: 'Hero Slider', icon: Image },
   { href: '/admin/news', label: 'Berita', icon: Newspaper },
   { href: '/admin/officials', label: 'Aparatur Desa', icon: Users },
   { href: '/admin/services', label: 'Layanan', icon: Briefcase },
   { href: '/admin/potentials', label: 'Potensi', icon: Zap },
   { href: '/admin/contacts', label: 'Pesan', icon: MessageSquare },
   { href: '/admin/users', label: 'Pengguna', icon: Users },
+  { href: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
 export default function AdminSidebar() {

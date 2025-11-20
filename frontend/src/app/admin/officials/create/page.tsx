@@ -139,7 +139,25 @@ export default function CreateVillageOfficialPage() {
             <select
               id="position"
               value={selectedPosition}
-              onChange={(e) => setSelectedPosition(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setSelectedPosition(value);
+                
+                // Update form value based on selection
+                if (value === 'Kepala Dusun') {
+                  // Will be updated when dusunNumber changes
+                  if (dusunNumber) {
+                    setValue('position', `Kepala Dusun ${dusunNumber}`);
+                  }
+                } else if (value === 'Other') {
+                  // Will be updated when customPosition changes
+                  if (customPosition) {
+                    setValue('position', customPosition);
+                  }
+                } else {
+                  setValue('position', value);
+                }
+              }}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.position ? 'border-red-500' : ''}`}
             >
               <option value="" disabled>Pilih Jabatan</option>
@@ -157,7 +175,13 @@ export default function CreateVillageOfficialPage() {
                 type="number"
                 id="dusunNumber"
                 value={dusunNumber}
-                onChange={(e) => setDusunNumber(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setDusunNumber(value);
+                  if (value) {
+                    setValue('position', `Kepala Dusun ${value}`);
+                  }
+                }}
                 className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
               />
             </div>
@@ -170,7 +194,11 @@ export default function CreateVillageOfficialPage() {
                 type="text"
                 id="customPosition"
                 value={customPosition}
-                onChange={(e) => setCustomPosition(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setCustomPosition(value);
+                  setValue('position', value);
+                }}
                 className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
               />
             </div>
