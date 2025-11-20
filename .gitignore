@@ -32,3 +32,6 @@ backend/.env
 /backend/uploads/*
 
 table_db.dbml
+
+# Binary
+backend/backend_app
