@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   description: "Berita dan informasi terbaru seputar kegiatan dan pembangunan di Desa Sei Rotan.",
 };
 
+export const dynamic = 'force-dynamic';
+
 export default function BeritaPage() {
   return (
     <main className="container mx-auto px-4 py-12">

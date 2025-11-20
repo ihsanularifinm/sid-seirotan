@@ -10,10 +10,10 @@ export type News = {
 };
 
 export const schema = yup.object().shape({
-  title: yup.string().required('Judul tidak boleh kosong'),
-  content: yup.string().required('Isi berita tidak boleh kosong'),
+  title: yup.string().required('Judul tidak boleh kosong').min(5, 'Judul minimal 5 karakter'),
+  content: yup.string().required('Isi berita tidak boleh kosong').min(20, 'Isi berita minimal 20 karakter'),
   status: yup.string().oneOf(['draft', 'published', 'archived']).required(),
-  published_at: yup.string().nullable().optional(),
+  published_at: yup.string().nullable().optional().default(null),
   featured_image_url: yup.string().optional().default(''),
 });
 
