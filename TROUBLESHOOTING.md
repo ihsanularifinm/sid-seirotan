@@ -72,6 +72,25 @@ docker compose exec db psql -U admin -d sid_sei_rotan_db
 
 ## Frontend Tidak Bisa Connect ke Backend
 
+### Error: POST /api/api/v1/... 404 (Double /api)
+
+**Penyebab:** `NEXT_PUBLIC_API_URL` salah dikonfigurasi dengan `/api` di akhir.
+
+**Solusi:**
+```env
+# ❌ SALAH - Jangan tambahkan /api
+NEXT_PUBLIC_API_URL=https://seirotan.desa.id/api
+
+# ✅ BENAR - Nginx akan handle routing /api
+NEXT_PUBLIC_API_URL=https://seirotan.desa.id
+```
+
+Setelah edit `.env`:
+```bash
+docker compose down
+docker compose up --build -d
+```
+
 ### Cek CORS settings:
 File `.env` di root:
 ```env
@@ -80,7 +99,11 @@ ALLOWED_ORIGINS=http://localhost,http://localhost:3000
 
 ### Cek API URL di frontend:
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8080
+# Local development
+NEXT_PUBLIC_API_URL=http://localhost
+
+# Production
+NEXT_PUBLIC_API_URL=https://seirotan.desa.id
 ```
 
 ## Reset Database Completely

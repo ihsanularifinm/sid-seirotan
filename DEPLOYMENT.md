@@ -64,7 +64,8 @@ JWT_SECRET=your_random_jwt_secret_min_32_chars_here
 SUPERADMIN_DEFAULT_PASSWORD=your_admin_password_here
 
 # Production URLs (sesuaikan dengan domain Anda)
-NEXT_PUBLIC_API_URL=https://seirotan.desa.id/api
+# PENTING: Jangan tambahkan /api di NEXT_PUBLIC_API_URL (nginx handle routing)
+NEXT_PUBLIC_API_URL=https://seirotan.desa.id
 ALLOWED_ORIGINS=https://seirotan.desa.id
 ```
 
