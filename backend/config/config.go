@@ -10,17 +10,18 @@ import (
 )
 
 func InitDB() *gorm.DB {
-	dbHost := os.Getenv("POSTGRES_HOST")
-	dbUser := os.Getenv("POSTGRES_USER")
-	dbPassword := os.Getenv("POSTGRES_PASSWORD")
-	dbName := os.Getenv("POSTGRES_DB")
-	dbPort := os.Getenv("POSTGRES_PORT")
+	dbHost := os.Getenv("DB_HOST")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
 
+	// Defaults for Docker environment
 	if dbHost == "" {
-		dbHost = "localhost"
+		dbHost = "db" // Docker service name
 	}
 	if dbPort == "" {
-		dbPort = "5433" // Default to 5433 as per docker-compose
+		dbPort = "5432" // Internal PostgreSQL port
 	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=Asia/Jakarta",
