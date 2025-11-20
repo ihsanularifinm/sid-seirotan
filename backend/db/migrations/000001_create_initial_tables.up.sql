@@ -2,6 +2,7 @@
 CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'author');
 CREATE TYPE news_status AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE potential_type AS ENUM ('umkm', 'tourism', 'agriculture', 'other');
+CREATE TYPE media_type AS ENUM ('image', 'video');
 
 -- Create users table
 CREATE TABLE users (
@@ -88,4 +89,20 @@ CREATE TABLE contacts (
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
+);
+
+-- Create hero_sliders table
+CREATE TABLE hero_sliders (
+    id BIGSERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    subtitle VARCHAR(255),
+    media_url VARCHAR(255) NOT NULL,
+    media_type media_type NOT NULL DEFAULT 'image',
+    link_url VARCHAR(255),
+    link_text VARCHAR(100),
+    display_order INT NOT NULL DEFAULT 0,
+    is_active BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMP
 );

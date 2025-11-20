@@ -51,6 +51,7 @@ func runMigrations(db *gorm.DB) error {
 		"CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'author')",
 		"CREATE TYPE news_status AS ENUM ('draft', 'published', 'archived')",
 		"CREATE TYPE potential_type AS ENUM ('umkm', 'tourism', 'agriculture', 'other')",
+		"CREATE TYPE media_type AS ENUM ('image', 'video')",
 	}
 
 	for _, enumSQL := range enumTypes {
@@ -70,5 +71,6 @@ func runMigrations(db *gorm.DB) error {
 		&models.Potential{},
 		&models.SiteSetting{},
 		&models.Contact{},
+		&models.HeroSlider{},
 	)
 }

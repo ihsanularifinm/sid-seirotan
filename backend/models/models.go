@@ -29,6 +29,12 @@ const (
 	PotentialTypeOther       PotentialType = "other"
 )
 
+type MediaType string
+const (
+	MediaTypeImage MediaType = "image"
+	MediaTypeVideo MediaType = "video"
+)
+
 // --- TABLES ---
 // User represents the users table (for admin login)
 type User struct {
@@ -115,4 +121,20 @@ type Contact struct {
 	CreatedAt time.Time      `gorm:"not null;default:now()" json:"created_at"`
 	UpdatedAt time.Time      `gorm:"not null;default:now()" json:"updated_at"`
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+// HeroSlider represents the hero_sliders table
+type HeroSlider struct {
+	ID           uint64         `gorm:"primaryKey;autoIncrement" json:"id"`
+	Title        string         `gorm:"type:varchar(255);not null" json:"title"`
+	Subtitle     *string        `gorm:"type:varchar(255)" json:"subtitle,omitempty"`
+	MediaURL     string         `gorm:"type:varchar(255);not null" json:"media_url"`
+	MediaType    MediaType      `gorm:"type:media_type;not null;default:'image'" json:"media_type"`
+	LinkURL      *string        `gorm:"type:varchar(255)" json:"link_url,omitempty"`
+	LinkText     *string        `gorm:"type:varchar(100)" json:"link_text,omitempty"`
+	DisplayOrder int            `gorm:"not null;default:0" json:"display_order"`
+	IsActive     bool           `gorm:"not null;default:true" json:"is_active"`
+	CreatedAt    time.Time      `gorm:"not null;default:now()" json:"created_at"`
+	UpdatedAt    time.Time      `gorm:"not null;default:now()" json:"updated_at"`
+	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
 }
