@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 import { getServices, Service } from "../../services/api";
 
 export default async function LayananPage() {

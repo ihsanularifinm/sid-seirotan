@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   },
 };
 
+export const dynamic = 'force-dynamic';
+
 import Image from 'next/image';
 
 import { getPotentials, Potential } from "../../services/api";

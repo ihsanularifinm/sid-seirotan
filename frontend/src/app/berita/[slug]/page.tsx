@@ -2,6 +2,8 @@ import { Metadata } from "next";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+export const dynamic = 'force-dynamic';
+
 import DOMPurify from 'isomorphic-dompurify';
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
