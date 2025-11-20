@@ -34,8 +34,9 @@ func main() {
 	heroSliderRepo := repositories.NewGormHeroSliderRepository(db)
 	siteSettingsRepo := repositories.NewGormSiteSettingsRepository(db)
 
-	// Seed the database with a superadmin user if it doesn't exist
+	// Seed the database with default users if they don't exist
 	userRepo.SeedSuperadmin()
+	userRepo.SeedDefaultAdmin()
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userRepo)

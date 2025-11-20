@@ -19,6 +19,7 @@ type UserRepository interface {
 	UpdateUser(user *models.User) error
 	DeleteUser(id uint64) error
 	SeedSuperadmin()
+	SeedDefaultAdmin()
 }
 
 // GormUserRepository implements UserRepository using GORM
@@ -133,5 +134,35 @@ func (r *GormUserRepository) SeedSuperadmin() {
 		log.Fatalf("FATAL: Error checking for superadmin user: %v", err)
 	} else {
 		log.Println("User 'superadmin' already exists.")
+	}
+}
+
+// SeedDefaultAdmin checks and creates a default admin user if one does not exist
+func (r *GormUserRepository) SeedDefaultAdmin() {
+	_, err := r.GetUserByUsername("admin")
+
+	if err != nil && err == gorm.ErrRecordNotFound {
+		log.Println("User 'admin' not found, creating default admin user...")
+		
+		// Default password for admin user
+		defaultPassword := "admin123"
+
+		admin := &models.User{
+			FullName:     "Administrator",
+			Username:     "admin",
+			PasswordHash: defaultPassword, // The CreateUser method will hash this
+			Role:         models.UserRoleAdmin,
+		}
+
+		if err := r.CreateUser(admin); err != nil {
+			log.Printf("WARNING: Failed to create default admin user: %v", err)
+		} else {
+			log.Println("User 'admin' created successfully with password 'admin123'")
+			log.Println("IMPORTANT: Please change the default admin password after first login!")
+		}
+	} else if err != nil {
+		log.Printf("WARNING: Error checking for admin user: %v", err)
+	} else {
+		log.Println("User 'admin' already exists.")
 	}
 }
