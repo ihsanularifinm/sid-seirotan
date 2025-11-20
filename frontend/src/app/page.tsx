@@ -26,6 +26,7 @@ import { FaUsers, FaLeaf, FaNewspaper } from "react-icons/fa";
 import { FaBuildingColumns } from "react-icons/fa6";
 
 import { getNews, getOfficials, News, VillageOfficial } from "../services/api";
+import HeroSlider from "@/components/HeroSlider";
 
 export default async function Home() {
   const latestNews: News[] = (await getNews(1, 3)).data;
@@ -54,13 +55,8 @@ export default async function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* Hero Section */}
-      <section className="relative h-96 bg-cover bg-center" style={{ backgroundImage: "url('/assets/img/hero-image.jpg')" }}>
-        <div className="absolute inset-0 bg-black bg-opacity-50"></div>
-        <div className="relative container mx-auto px-4 h-full flex items-center justify-center">
-          <h1 className="text-white text-4xl md:text-5xl font-bold text-center">Desa Sei Rotan</h1>
-        </div>
-      </section>
+      {/* Hero Slider Section */}
+      <HeroSlider />
 
       {/* Quick Links/Services Section */}
       <section className="bg-white py-12">
