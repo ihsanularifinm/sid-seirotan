@@ -7,8 +7,14 @@ import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { getMediaUrl } from '@/lib/mediaUrl';
+import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+const FILE_SIZE_LIMITS = {
+  WARNING_THRESHOLD: 2 * 1024 * 1024, // 2MB
+  MAX_WITHOUT_COMPRESSION: 5 * 1024 * 1024, // 5MB
+};
 
 export default function EditHeroSliderForm() {
   const router = useRouter();
@@ -26,8 +32,13 @@ export default function EditHeroSliderForm() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [compressedFile, setCompressedFile] = useState<File | null>(null);
   const [mediaPreviewUrl, setMediaPreviewUrl] = useState<string | null>(null);
+  const [compressedPreviewUrl, setCompressedPreviewUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [compressing, setCompressing] = useState(false);
+  const [enableCompression, setEnableCompression] = useState(true);
+  const [showCompressionPreview, setShowCompressionPreview] = useState(false);
   const [existingMediaUrl, setExistingMediaUrl] = useState<string>('');
   
   const [formData, setFormData] = useState({
@@ -80,24 +91,102 @@ export default function EditHeroSliderForm() {
     fetchSlider();
   }, [sliderId, router]);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files ? e.target.files[0] : null;
+    if (!file) return;
+
     setUploadedFile(file);
-    if (file) {
-      setMediaPreviewUrl(URL.createObjectURL(file));
-      // Auto-detect media type from file
-      if (file.type.startsWith('video/')) {
-        setFormData({ ...formData, media_type: 'video' });
-      } else {
-        setFormData({ ...formData, media_type: 'image' });
-      }
+    setCompressedFile(null);
+    setShowCompressionPreview(false);
+    
+    // Create preview URL
+    setMediaPreviewUrl(URL.createObjectURL(file));
+    
+    // Auto-detect media type from file
+    if (file.type.startsWith('video/')) {
+      setFormData({ ...formData, media_type: 'video' });
+      setEnableCompression(false); // Disable compression for videos
     } else {
-      setMediaPreviewUrl(null);
+      setFormData({ ...formData, media_type: 'image' });
+      
+      // Show warning for large files
+      if (file.size > FILE_SIZE_LIMITS.WARNING_THRESHOLD) {
+        toast(
+          `⚠️ File besar (${formatFileSize(file.size)}). Compression direkomendasikan untuk upload lebih cepat.`,
+          { 
+            duration: 5000,
+            icon: '⚠️',
+            style: {
+              background: '#FEF3C7',
+              color: '#92400E',
+              border: '1px solid #FCD34D',
+            },
+          }
+        );
+      }
+      
+      // Auto-compress if enabled
+      if (enableCompression) {
+        await performCompression(file);
+      }
+    }
+  };
+
+  const performCompression = async (file: File) => {
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      setCompressedFile(compressed);
+      setCompressedPreviewUrl(URL.createObjectURL(compressed));
+      setShowCompressionPreview(true);
+      
+      const savings = calculateSavings(file.size, compressed.size);
+      if (savings > 0) {
+        toast.success(
+          `Compressed: ${formatFileSize(file.size)} → ${formatFileSize(compressed.size)} (${savings}% saved)`,
+          { duration: 4000 }
+        );
+      }
+    } catch (error) {
+      console.error('Compression failed:', error);
+      toast.error('Compression gagal. Akan upload file original.');
+      setCompressedFile(null);
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  const handleCompressionToggle = async (enabled: boolean) => {
+    setEnableCompression(enabled);
+    
+    if (enabled && uploadedFile && !compressedFile && uploadedFile.type.startsWith('image/')) {
+      await performCompression(uploadedFile);
+    } else if (!enabled) {
+      setCompressedFile(null);
+      setCompressedPreviewUrl(null);
+      setShowCompressionPreview(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate file size if uploading new file
+    if (uploadedFile) {
+      const fileToUpload = enableCompression && compressedFile ? compressedFile : uploadedFile;
+      
+      // Check size limit without compression
+      if (!enableCompression && fileToUpload.size > FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION) {
+        toast.error(
+          `File terlalu besar (${formatFileSize(fileToUpload.size)}). ` +
+          `Maksimal ${formatFileSize(FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION)} tanpa compression. ` +
+          `Silakan aktifkan compression atau pilih file lebih kecil.`,
+          { duration: 6000 }
+        );
+        return;
+      }
+    }
+
     setSubmitting(true);
 
     try {
@@ -112,9 +201,12 @@ export default function EditHeroSliderForm() {
 
       // Upload file if new file is selected
       if (uploadedFile) {
+        // Determine which file to upload
+        const fileToUpload = enableCompression && compressedFile ? compressedFile : uploadedFile;
+        
         setUploading(true);
         const uploadFormData = new FormData();
-        uploadFormData.append('file', uploadedFile);
+        uploadFormData.append('file', fileToUpload);
 
         const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
           method: 'POST',
