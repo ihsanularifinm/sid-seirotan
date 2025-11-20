@@ -89,7 +89,8 @@ export default function CreateNewsPage() {
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.error || 'Failed to create news');
+        const errorMessage = errorData.details || errorData.error || 'Failed to create news';
+        throw new Error(errorMessage);
       }
 
       setSuccess('News created successfully!');
