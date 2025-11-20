@@ -7,7 +7,7 @@ import (
 )
 
 // SetupPublicRoutes configures all public-facing API routes
-func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler) {
+func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler) {
 	// Apply rate limiting: 5 requests per second, with a burst of 10
 	public.Use(middlewares.RateLimitMiddleware(5, 10))
 
@@ -25,6 +25,13 @@ func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandle
 		serviceRoutes.GET("", serviceHandler.GetAllServices)
 		serviceRoutes.GET("/:id", serviceHandler.GetServiceByID)
 	}
+
+	// Hero Slider Routes (Public)
+	public.GET("/hero-sliders", heroSliderHandler.GetActive)
+
+	// Site Settings Routes (Public)
+	public.GET("/settings", siteSettingsHandler.GetAll)
+	public.GET("/settings/:group", siteSettingsHandler.GetByGroup)
 }
 
 // SetupAuthRoutes configures all authentication-related API routes
@@ -33,7 +40,7 @@ func SetupAuthRoutes(auth *gin.RouterGroup, authHandler *handlers.AuthHandler) {
 }
 
 // SetupAdminRoutes configures all admin-facing API routes
-func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, serviceHandler *handlers.ServiceHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler) {
+func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, serviceHandler *handlers.ServiceHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler) {
 	admin.POST("/upload", middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"), handlers.UploadFile)
 
 	// User Management Routes
@@ -91,6 +98,26 @@ func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler,
 	contactAdminRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
 	{
 		contactAdminRoutes.GET("", contactHandler.GetAllContacts)
+	}
+
+	// Hero Slider Management Routes
+	heroSliderAdminRoutes := admin.Group("/hero-sliders")
+	heroSliderAdminRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
+	{
+		heroSliderAdminRoutes.GET("", heroSliderHandler.GetAll)
+		heroSliderAdminRoutes.GET("/:id", heroSliderHandler.GetByID)
+		heroSliderAdminRoutes.POST("", heroSliderHandler.Create)
+		heroSliderAdminRoutes.PUT("/:id", heroSliderHandler.Update)
+		heroSliderAdminRoutes.DELETE("/:id", heroSliderHandler.Delete)
+	}
+
+	// Site Settings Management Routes
+	settingsAdminRoutes := admin.Group("/settings")
+	settingsAdminRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
+	{
+		settingsAdminRoutes.GET("", siteSettingsHandler.GetAllAdmin)
+		settingsAdminRoutes.PUT("", siteSettingsHandler.BulkUpdate)
+		settingsAdminRoutes.POST("", siteSettingsHandler.Upsert)
 	}
 
 }

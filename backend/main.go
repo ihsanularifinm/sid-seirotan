@@ -31,6 +31,8 @@ func main() {
 	potentialRepo := repositories.NewGormPotentialRepository(db)
 	contactRepo := repositories.NewGormContactRepository(db)
 	serviceRepo := repositories.NewGormServiceRepository(db)
+	heroSliderRepo := repositories.NewGormHeroSliderRepository(db)
+	siteSettingsRepo := repositories.NewGormSiteSettingsRepository(db)
 
 	// Seed the database with a superadmin user if it doesn't exist
 	userRepo.SeedSuperadmin()
@@ -43,6 +45,8 @@ func main() {
 	contactHandler := handlers.NewContactHandler(contactRepo)
 	serviceHandler := handlers.NewServiceHandler(serviceRepo)
 	userHandler := handlers.NewUserHandler(userRepo)
+	heroSliderHandler := handlers.NewHeroSliderHandler(heroSliderRepo)
+	siteSettingsHandler := handlers.NewSiteSettingsHandler(siteSettingsRepo)
 
 	router := gin.Default()
 
@@ -66,8 +70,8 @@ func main() {
 
 	// Setup routes
 	routes.SetupAuthRoutes(authRoutes, authHandler)
-	routes.SetupPublicRoutes(publicRoutes, newsHandler, villageOfficialHandler, potentialHandler, contactHandler, serviceHandler)
-	routes.SetupAdminRoutes(adminRoutes, userHandler, newsHandler, villageOfficialHandler, serviceHandler, potentialHandler, contactHandler)
+	routes.SetupPublicRoutes(publicRoutes, newsHandler, villageOfficialHandler, potentialHandler, contactHandler, serviceHandler, heroSliderHandler, siteSettingsHandler)
+	routes.SetupAdminRoutes(adminRoutes, userHandler, newsHandler, villageOfficialHandler, serviceHandler, potentialHandler, contactHandler, heroSliderHandler, siteSettingsHandler)
 
 	// Run the server
 	port := os.Getenv("PORT")
