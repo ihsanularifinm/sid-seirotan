@@ -36,14 +36,14 @@ func NewAuthHandler(userRepo repositories.UserRepository) *AuthHandler {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Username and password are required"})
+		utils.RespondError(c, http.StatusBadRequest, "Username and password are required", err)
 		return
 	}
 
 	// Get user from repository
 	user, err := h.UserRepository.GetUserByUsername(req.Username)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		utils.RespondError(c, http.StatusUnauthorized, "Invalid credentials", nil)
 		return
 	}
 
@@ -55,14 +55,14 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	// Compare password with the hashed password from the database
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		utils.RespondError(c, http.StatusUnauthorized, "Invalid credentials", nil)
 		return
 	}
 
 	// Generate JWT token including the user's role
 	token, err := utils.GenerateToken(user.ID, user.Username, string(user.Role))
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to generate token", err)
 		return
 	}
 

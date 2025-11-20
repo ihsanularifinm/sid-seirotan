@@ -20,23 +20,7 @@ export const metadata: Metadata = {
 
 import Image from 'next/image';
 
-type VillageOfficial = {
-  id: number;
-  name: string;
-  position: string;
-  photo_url: string;
-};
-
-async function getOfficials() {
-  const apiBaseUrl = typeof window === 'undefined' 
-    ? 'http://localhost:8081' 
-    : process.env.NEXT_PUBLIC_API_URL;
-  const res = await fetch(`${apiBaseUrl}/api/v1/officials`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch officials');
-  }
-  return res.json();
-}
+import { getOfficials, VillageOfficial } from "../../services/api";
 
 export default async function PemerintahanPage() {
   const officials: VillageOfficial[] = await getOfficials();
@@ -71,7 +55,6 @@ export default async function PemerintahanPage() {
               width={150}
               height={150}
               className="w-36 h-36 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white hover:shadow-xl transition-shadow duration-300"
-              unoptimized
             />
             <h3 className="font-bold text-md text-gray-800">{official.name}</h3>
             <p className="text-sm text-gray-500">{official.position}</p>

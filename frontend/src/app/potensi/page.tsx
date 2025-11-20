@@ -20,26 +20,9 @@ export const metadata: Metadata = {
 
 import Image from 'next/image';
 
-type Potential = {
-  id: number;
-  title: string;
-  description: string;
-  cover_image_url: string;
-  type: string;
-};
+import { getPotentials, Potential } from "../../services/api";
 
-async function getPotentials() {
-  const apiBaseUrl = typeof window === 'undefined' 
-    ? 'http://localhost:8081' 
-    : process.env.NEXT_PUBLIC_API_URL;
-  const res = await fetch(`${apiBaseUrl}/api/v1/potentials`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch potentials');
-  }
-  return res.json();
-}
-
-export default async function PotensiPage() {
+export default async function Potensi() {
   const potentials: Potential[] = await getPotentials();
 
   const jsonLd = {

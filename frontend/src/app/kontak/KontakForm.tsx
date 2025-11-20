@@ -1,7 +1,10 @@
+
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from "react";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope } from 'react-icons/fa';
+import api, { createContact } from "@/services/api";
+import toast from "react-hot-toast";
 
 export default function KontakForm() {
   const [formData, setFormData] = useState({
@@ -25,26 +28,16 @@ export default function KontakForm() {
     setSuccess(false);
 
     try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      const res = await fetch(`${apiUrl}/api/v1/contacts`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || 'Something went wrong');
-      }
-
-      setSuccess(true);
-      setFormData({ name: '', email: '', subject: '', message: '' });
+      await createContact(formData);
+      toast.success("Pesan berhasil dikirim!");
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      setSuccess(true); // Keep existing success state for conditional rendering if needed
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+      console.error("Error sending message:", err);
+      toast.error("Gagal mengirim pesan. Silakan coba lagi.");
+      const errorObj = err as { response?: { data?: { error?: string } }, message?: string };
+      const errorMessage = errorObj.response?.data?.error || errorObj.message || 'Something went wrong';
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }

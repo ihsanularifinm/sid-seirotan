@@ -18,23 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-type Service = {
-  id: number;
-  service_name: string;
-  description: string;
-  requirements: string;
-};
-
-async function getServices() {
-  const apiBaseUrl = typeof window === 'undefined' 
-    ? 'http://localhost:8081' 
-    : process.env.NEXT_PUBLIC_API_URL;
-  const res = await fetch(`${apiBaseUrl}/api/v1/services`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch services');
-  }
-  return res.json();
-}
+import { getServices, Service } from "../../services/api";
 
 export default async function LayananPage() {
   const services: Service[] = await getServices();

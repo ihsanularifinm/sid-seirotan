@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"gorm.io/gorm"
 )
@@ -59,7 +61,7 @@ func (r *GormNewsRepository) GetAllNews(page, limit int) ([]models.News, int64, 
 	}
 
 	// Get paginated data
-	if err := r.db.Preload("Author").Where("status = ?", models.NewsStatusPublished).Order("created_at DESC").Offset(offset).Limit(limit).Find(&news).Error; err != nil {
+	if err := r.db.Preload("Author").Where("status = ? AND published_at <= ?", models.NewsStatusPublished, time.Now()).Order("published_at DESC").Offset(offset).Limit(limit).Find(&news).Error; err != nil {
 		return nil, 0, err
 	}
 

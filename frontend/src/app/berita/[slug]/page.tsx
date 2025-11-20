@@ -2,6 +2,8 @@ import { Metadata } from "next";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
+import DOMPurify from 'isomorphic-dompurify';
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const awaitedParams = await params;
   const news: News = await getNewsDetail(awaitedParams.slug);
@@ -31,14 +33,10 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { News } from '@/types/news';
+import { getNewsBySlug, News } from "../../../services/api";
 
 async function getNewsDetail(slug: string) {
-  const res = await fetch(`${apiUrl}/api/v1/posts/slug/${slug}`);
-  if (!res.ok) {
-    throw new Error('Failed to fetch news detail');
-  }
-  return res.json();
+  return getNewsBySlug(slug);
 }
 
 export default async function DetailBeritaPage({ params }: { params: { slug: string } }) {
@@ -86,9 +84,9 @@ export default async function DetailBeritaPage({ params }: { params: { slug: str
         <h1 className="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">{news.title}</h1>
         <p className="text-gray-500 text-sm mt-4">Dipublikasikan pada {new Date(news.created_at).toLocaleDateString()}</p>
 
-        <Image src={news.featured_image_url ? `${apiUrl}${news.featured_image_url}` : '/assets/img/berita1-large.jpg'} alt={news.title} width={800} height={450} className="w-full h-auto my-8 rounded-lg" unoptimized />
+        <Image src={news.featured_image_url ? `${apiUrl}${news.featured_image_url}` : '/assets/img/berita1-large.jpg'} alt={news.title} width={800} height={450} className="w-full h-auto my-8 rounded-lg" />
 
-        <div className="prose max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: news.content }} />
+        <div className="prose max-w-none text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(news.content) }} />
       </article>
     </main>
   );

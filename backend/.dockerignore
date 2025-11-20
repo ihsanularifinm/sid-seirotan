@@ -1,0 +1,8 @@
+tmp
+uploads
+.git
+.env
+main
+backend_app
+Dockerfile
+.dockerignore

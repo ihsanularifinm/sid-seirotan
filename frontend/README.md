@@ -20,6 +20,12 @@ Frontend ini dibangun menggunakan Next.js, sebuah framework React.
 
 ## Menjalankan Frontend
 
+### Menggunakan Docker (Disarankan)
+
+Lihat panduan di README utama untuk menjalankan aplikasi menggunakan Docker Compose.
+
+### Manual (Development)
+
 1.  Pastikan backend sudah berjalan.
 2.  Dari direktori `frontend`, install dependensi:
     ```bash

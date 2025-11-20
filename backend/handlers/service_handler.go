@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
+	"github.com/ihsanularifinm/sid-seirotan/backend/utils"
 )
 
 type ServiceHandler struct {
@@ -16,6 +17,20 @@ type ServiceHandler struct {
 
 func NewServiceHandler(repo repositories.ServiceRepository) *ServiceHandler {
 	return &ServiceHandler{repo: repo}
+}
+
+// CreateServiceInput defines the input for creating a service
+type CreateServiceInput struct {
+	ServiceName  string `json:"service_name" binding:"required"`
+	Description  string `json:"description"`
+	Requirements string `json:"requirements"`
+}
+
+// UpdateServiceInput defines the input for updating a service
+type UpdateServiceInput struct {
+	ServiceName  string `json:"service_name"`
+	Description  string `json:"description"`
+	Requirements string `json:"requirements"`
 }
 
 // CreateService godoc
@@ -28,13 +43,20 @@ func NewServiceHandler(repo repositories.ServiceRepository) *ServiceHandler {
 // @Success 201 {object} models.Service
 // @Router /admin/services [post]
 func (h *ServiceHandler) CreateService(c *gin.Context) {
-	var service models.Service
-	if err := c.ShouldBindJSON(&service); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var input CreateServiceInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
+
+	service := models.Service{
+		ServiceName:  input.ServiceName,
+		Description:  &input.Description,
+		Requirements: &input.Requirements,
+	}
+
 	if err := h.repo.CreateService(&service); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to create service", err)
 		return
 	}
 	c.JSON(http.StatusCreated, service)
@@ -50,7 +72,7 @@ func (h *ServiceHandler) CreateService(c *gin.Context) {
 func (h *ServiceHandler) GetAllServices(c *gin.Context) {
 	services, err := h.repo.GetAllServices()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve services", err)
 		return
 	}
 	c.JSON(http.StatusOK, services)
@@ -67,12 +89,12 @@ func (h *ServiceHandler) GetAllServices(c *gin.Context) {
 func (h *ServiceHandler) GetServiceByID(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 	service, err := h.repo.GetServiceByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Service not found"})
+		utils.RespondError(c, http.StatusNotFound, "Service not found", err)
 		return
 	}
 	c.JSON(http.StatusOK, service)
@@ -91,17 +113,25 @@ func (h *ServiceHandler) GetServiceByID(c *gin.Context) {
 func (h *ServiceHandler) UpdateService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
-	var service models.Service
-	if err := c.ShouldBindJSON(&service); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	var input UpdateServiceInput
+	if err := c.ShouldBindJSON(&input); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
-	service.ID = id
+
+	// Ideally fetch first, but sticking to simple update for now as per original logic, but using input struct
+	service := models.Service{
+		ID:           id,
+		ServiceName:  input.ServiceName,
+		Description:  &input.Description,
+		Requirements: &input.Requirements,
+	}
+
 	if err := h.repo.UpdateService(&service); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to update service", err)
 		return
 	}
 	c.JSON(http.StatusOK, service)
@@ -117,11 +147,11 @@ func (h *ServiceHandler) UpdateService(c *gin.Context) {
 func (h *ServiceHandler) DeleteService(c *gin.Context) {
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid ID", err)
 		return
 	}
 	if err := h.repo.DeleteService(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to delete service", err)
 		return
 	}
 	c.Status(http.StatusNoContent)

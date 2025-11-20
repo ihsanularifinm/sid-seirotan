@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
+	"github.com/ihsanularifinm/sid-seirotan/backend/utils"
 	"gorm.io/gorm"
 )
 
@@ -40,7 +41,7 @@ func NewUserHandler(userRepo repositories.UserRepository) *UserHandler {
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var payload CreateUserPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -52,7 +53,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	}
 
 	if err := h.UserRepository.CreateUser(&user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to create user", err)
 		return
 	}
 
@@ -65,7 +66,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 func (h *UserHandler) GetAllUsers(c *gin.Context) {
 	requestingRoleStr, exists := c.Get("userRole")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: User role not found in token"})
+		utils.RespondError(c, http.StatusUnauthorized, "Unauthorized: User role not found in token", nil)
 		return
 	}
 
@@ -73,7 +74,7 @@ func (h *UserHandler) GetAllUsers(c *gin.Context) {
 
 	users, err := h.UserRepository.GetAllUsers(requestingRole)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve users", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve users", err)
 		return
 	}
 
@@ -96,10 +97,10 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 	user, err := h.UserRepository.GetUserByID(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			utils.RespondError(c, http.StatusNotFound, "User not found", err)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve user", err)
 		return
 	}
 
@@ -118,7 +119,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 
 	var payload UpdateUserPayload
 	if err := c.ShouldBindJSON(&payload); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -133,16 +134,16 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	existingUser, err := h.UserRepository.GetUserByID(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			utils.RespondError(c, http.StatusNotFound, "User not found", err)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user for update", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve user for update", err)
 		return
 	}
 
 	// Business logic: Only superadmin can edit superadmin accounts
 	if existingUser.Role == models.UserRoleSuperadmin && requestingRole.(models.UserRole) != models.UserRoleSuperadmin {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only superadmin can edit superadmin accounts"})
+		utils.RespondError(c, http.StatusForbidden, "Only superadmin can edit superadmin accounts", nil)
 		return
 	}
 
@@ -161,7 +162,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	}
 
 	if err := h.UserRepository.UpdateUser(existingUser); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update user", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to update user", err)
 		return
 	}
 
@@ -190,20 +191,20 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	userToDelete, err := h.UserRepository.GetUserByID(id)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+			utils.RespondError(c, http.StatusNotFound, "User not found", err)
 			return
 		}
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve user for deletion", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve user for deletion", err)
 		return
 	}
 
 	if userToDelete.Role == models.UserRoleSuperadmin && requestingRole.(models.UserRole) != models.UserRoleSuperadmin {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Only superadmin can delete superadmin accounts"})
+		utils.RespondError(c, http.StatusForbidden, "Only superadmin can delete superadmin accounts", nil)
 		return
 	}
 
 	if err := h.UserRepository.DeleteUser(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to delete user", err)
 		return
 	}
 

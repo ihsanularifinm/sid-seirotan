@@ -24,6 +24,12 @@ Backend ini dibangun menggunakan Go dengan framework Gin.
 
 ## Menjalankan Backend
 
+### Menggunakan Docker (Disarankan)
+
+Lihat panduan di README utama untuk menjalankan aplikasi menggunakan Docker Compose.
+
+### Manual (Development)
+
 1.  Pastikan Anda sudah membuat file `.env` (lihat README utama).
 2.  Jalankan migrasi database (lihat README utama).
 3.  Dari direktori `backend`, jalankan:

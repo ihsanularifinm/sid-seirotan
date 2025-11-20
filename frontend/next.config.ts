@@ -7,6 +7,10 @@ const nextConfig: NextConfig = {
         protocol: 'http',
         hostname: 'localhost',
       },
+      {
+        protocol: 'https',
+        hostname: 'seirotan.desa.id',
+      },
     ],
   },
   /* config options here */

@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
+	"github.com/ihsanularifinm/sid-seirotan/backend/utils"
 )
 
 // NewsHandler handles news related requests
@@ -57,18 +58,20 @@ func (h *NewsHandler) generateUniqueSlug(title string, currentID uint64) (string
 
 // CreateNewsInput defines the expected input for creating a news post
 type CreateNewsInput struct {
-	Title            string `json:"title" binding:"required"`
-	Content          string `json:"content" binding:"required"`
+	Title            string            `json:"title" binding:"required,min=5"`
+	Content          string            `json:"content" binding:"required,min=20"`
 	Status           models.NewsStatus `json:"status"`
-	FeaturedImageURL string `json:"featured_image_url"`
+	FeaturedImageURL string            `json:"featured_image_url"`
+	PublishedAt      *time.Time        `json:"published_at"`
 }
 
 // UpdateNewsInput defines the expected input for updating a news post
 type UpdateNewsInput struct {
-	Title            string `json:"title"`
-	Content          string `json:"content"`
+	Title            string            `json:"title" binding:"omitempty,min=5"`
+	Content          string            `json:"content" binding:"omitempty,min=20"`
 	Status           models.NewsStatus `json:"status"`
-	FeaturedImageURL string `json:"featured_image_url"`
+	FeaturedImageURL string            `json:"featured_image_url"`
+	PublishedAt      *time.Time        `json:"published_at"`
 }
 
 // GetAllNewsForAdmin retrieves all news posts with pagination for the admin panel
@@ -88,7 +91,7 @@ func (h *NewsHandler) GetAllNewsForAdmin(c *gin.Context) {
 
 	news, total, err := h.NewsRepository.GetAllNewsForAdmin(page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve news"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve news", err)
 		return
 	}
 
@@ -124,7 +127,7 @@ func (h *NewsHandler) GetPublishedNews(c *gin.Context) {
 
 	news, total, err := h.NewsRepository.GetAllNews(page, limit)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve news"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve news", err)
 		return
 	}
 
@@ -154,7 +157,7 @@ func (h *NewsHandler) GetNewsByID(c *gin.Context) {
 
 	news, err := h.NewsRepository.GetNewsByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "News not found"})
+		utils.RespondError(c, http.StatusNotFound, "News not found", err)
 		return
 	}
 	c.JSON(http.StatusOK, news)
@@ -166,7 +169,7 @@ func (h *NewsHandler) GetNewsBySlug(c *gin.Context) {
 
 	news, err := h.NewsRepository.GetNewsBySlug(slug)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "News not found"})
+		utils.RespondError(c, http.StatusNotFound, "News not found", err)
 		return
 	}
 	c.JSON(http.StatusOK, news)
@@ -176,20 +179,20 @@ func (h *NewsHandler) GetNewsBySlug(c *gin.Context) {
 func (h *NewsHandler) CreateNews(c *gin.Context) {
 	var input CreateNewsInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	authorID, exists := c.Get("userID")
 	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: User ID not found in token"})
+		utils.RespondError(c, http.StatusUnauthorized, "Unauthorized: User ID not found in token", nil)
 		return
 	}
 
 	// Generate a unique slug
 	slug, err := h.generateUniqueSlug(input.Title, 0) // 0 for currentID as it's a new post
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate unique slug", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to generate unique slug", err)
 		return
 	}
 
@@ -201,14 +204,21 @@ func (h *NewsHandler) CreateNews(c *gin.Context) {
 		Status:           input.Status,
 		AuthorID:         authorID.(uint64),
 		FeaturedImageURL: &input.FeaturedImageURL,
+		PublishedAt:      input.PublishedAt,
 	}
 
 	if news.Status == "" {
 		news.Status = models.NewsStatusDraft // Default status
 	}
 
+	// If status is published but no published_at date, set it to now
+	if news.Status == models.NewsStatusPublished && news.PublishedAt == nil {
+		now := time.Now()
+		news.PublishedAt = &now
+	}
+
 	if err := h.NewsRepository.CreateNews(&news); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create news", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to create news", err)
 		return
 	}
 	c.JSON(http.StatusCreated, news)
@@ -219,20 +229,20 @@ func (h *NewsHandler) UpdateNews(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid news ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid news ID", err)
 		return
 	}
 
 	var input UpdateNewsInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body", "details": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	// Fetch the existing news post
 	existingNews, err := h.NewsRepository.GetNewsByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "News not found"})
+		utils.RespondError(c, http.StatusNotFound, "News not found", err)
 		return
 	}
 
@@ -246,7 +256,7 @@ func (h *NewsHandler) UpdateNews(c *gin.Context) {
 		slug, err := h.generateUniqueSlug(input.Title, id)
 		if err != nil {
 			log.Printf("ERROR UpdateNews: Failed to generate unique slug: %v", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate unique slug", "details": err.Error()})
+			utils.RespondError(c, http.StatusInternalServerError, "Failed to generate unique slug", err)
 			return
 		}
 		existingNews.Slug = slug
@@ -268,9 +278,20 @@ func (h *NewsHandler) UpdateNews(c *gin.Context) {
 		log.Printf("DEBUG UpdateNews: FeaturedImageURL changed.")
 		existingNews.FeaturedImageURL = &input.FeaturedImageURL
 	}
+	
+	// Handle PublishedAt update
+	if input.PublishedAt != nil {
+		existingNews.PublishedAt = input.PublishedAt
+	}
+	// If status changes to published and no published date exists, set it
+	if existingNews.Status == models.NewsStatusPublished && existingNews.PublishedAt == nil {
+		now := time.Now()
+		existingNews.PublishedAt = &now
+	}
+
 	if err := h.NewsRepository.UpdateNews(existingNews); err != nil {
 		log.Printf("ERROR UpdateNews: Failed to update news in repository: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update news", "details": err.Error()})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to update news", err)
 		return
 	}
 	log.Printf("DEBUG UpdateNews: News updated successfully in repository.")
@@ -289,12 +310,12 @@ func (h *NewsHandler) DeleteNews(c *gin.Context) {
 	// First, check if the news exists
 	_, err = h.NewsRepository.GetNewsByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "News not found"})
+		utils.RespondError(c, http.StatusNotFound, "News not found", err)
 		return
 	}
 
 	if err := h.NewsRepository.DeleteNews(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete news"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to delete news", err)
 		return
 	}
 

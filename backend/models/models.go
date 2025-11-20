@@ -50,6 +50,7 @@ type News struct {
 	Content         string         `gorm:"type:text;not null" json:"content"`
 	FeaturedImageURL *string       `gorm:"type:varchar(255)" json:"featured_image_url,omitempty"`
 	Status          NewsStatus     `gorm:"type:news_status;not null;default:'draft'" json:"status"`
+	PublishedAt     *time.Time     `json:"published_at,omitempty"`
 	AuthorID        uint64         `gorm:"not null" json:"author_id"`
 	Author          User           `gorm:"foreignKey:AuthorID" json:"author,omitempty"` // GORM association
 	CreatedAt       time.Time      `gorm:"not null;default:now()" json:"created_at"`

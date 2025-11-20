@@ -7,6 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
+	"github.com/ihsanularifinm/sid-seirotan/backend/utils"
 )
 
 // VillageOfficialHandler handles village official-related requests
@@ -41,7 +42,7 @@ func NewVillageOfficialHandler(repo repositories.VillageOfficialRepository) *Vil
 func (h *VillageOfficialHandler) CreateVillageOfficial(c *gin.Context) {
 	var input CreateVillageOfficialInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
@@ -54,7 +55,7 @@ func (h *VillageOfficialHandler) CreateVillageOfficial(c *gin.Context) {
 	}
 
 	if err := h.Repo.CreateVillageOfficial(&official); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create village official"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to create village official", err)
 		return
 	}
 
@@ -66,13 +67,13 @@ func (h *VillageOfficialHandler) GetVillageOfficialByID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid official ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid official ID", err)
 		return
 	}
 
 	official, err := h.Repo.GetVillageOfficialByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Village official not found"})
+		utils.RespondError(c, http.StatusNotFound, "Village official not found", err)
 		return
 	}
 
@@ -83,7 +84,7 @@ func (h *VillageOfficialHandler) GetVillageOfficialByID(c *gin.Context) {
 func (h *VillageOfficialHandler) GetAllVillageOfficials(c *gin.Context) {
 	officials, err := h.Repo.GetAllVillageOfficials()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve village officials"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve village officials", err)
 		return
 	}
 
@@ -95,19 +96,19 @@ func (h *VillageOfficialHandler) UpdateVillageOfficial(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid official ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid official ID", err)
 		return
 	}
 
 	var input UpdateVillageOfficialInput
 	if err := c.ShouldBindJSON(&input); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
 		return
 	}
 
 	existingOfficial, err := h.Repo.GetVillageOfficialByID(id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Village official not found"})
+		utils.RespondError(c, http.StatusNotFound, "Village official not found", err)
 		return
 	}
 
@@ -128,7 +129,7 @@ func (h *VillageOfficialHandler) UpdateVillageOfficial(c *gin.Context) {
 	}
 
 	if err := h.Repo.UpdateVillageOfficial(existingOfficial); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update village official"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to update village official", err)
 		return
 	}
 
@@ -140,12 +141,12 @@ func (h *VillageOfficialHandler) DeleteVillageOfficial(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 64)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid official ID"})
+		utils.RespondError(c, http.StatusBadRequest, "Invalid official ID", err)
 		return
 	}
 
 	if err := h.Repo.DeleteVillageOfficial(id); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete village official"})
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to delete village official", err)
 		return
 	}
 

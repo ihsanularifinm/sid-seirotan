@@ -8,6 +8,9 @@ import (
 
 // SetupPublicRoutes configures all public-facing API routes
 func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler) {
+	// Apply rate limiting: 5 requests per second, with a burst of 10
+	public.Use(middlewares.RateLimitMiddleware(5, 10))
+
 	public.Static("/uploads", "uploads")
 	public.GET("/posts", newsHandler.GetPublishedNews)
 	public.GET("/posts/:id", newsHandler.GetNewsByID)
