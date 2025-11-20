@@ -91,4 +91,21 @@ export const getOfficials = async (): Promise<VillageOfficial[]> => {
   return response.data;
 };
 
+// Hero Sliders
+export const getHeroSliders = async () => {
+  const response = await api.get('/api/v1/hero-sliders');
+  return response.data;
+};
+
+// Settings
+export const getSettings = async () => {
+  const response = await api.get('/api/v1/settings');
+  return response.data;
+};
+
+export const getSettingsByGroup = async (group: string) => {
+  const response = await api.get(`/api/v1/settings/${group}`);
+  return response.data;
+};
+
 export default api;
