@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -39,7 +39,7 @@ export default function CreateNewsPage() {
     };
   }, [imagePreviewUrl]);
 
-  const onSubmit = async (data: NewsFormData) => {
+  const onSubmit: SubmitHandler<NewsFormData> = async (data) => {
     setSubmitting(true);
     setError(null);
     setSuccess(null);
@@ -113,7 +113,8 @@ export default function CreateNewsPage() {
       {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">Error: {error}</div>}
 
       <div className="bg-white shadow-md rounded-lg p-6">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <form onSubmit={handleSubmit(onSubmit as any)}>
           <div className="mb-4">
             <label htmlFor="title" className="block text-gray-700 text-sm font-bold mb-2">Judul Berita</label>
             <input
