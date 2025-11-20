@@ -16,9 +16,9 @@ import (
 )
 
 func main() {
-	// Load .env file
+	// Load .env file (optional in production/Docker)
 	if err := godotenv.Load(); err != nil {
-		log.Fatalf("Error loading .env file: %v", err)
+		log.Println("Warning: .env file not found, using environment variables from system")
 	}
 
 	// Initialize database connection
@@ -48,7 +48,7 @@ func main() {
 
 	// Configure CORS
 	configCORS := cors.DefaultConfig()
-	origins := os.Getenv("CORS_ALLOWED_ORIGINS")
+	origins := os.Getenv("ALLOWED_ORIGINS")
 	if origins == "" {
 		origins = "http://localhost:3001,http://localhost:3000" // Fallback
 	}
