@@ -10,8 +10,15 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
 import { positions } from '@/data/positions';
 import { useState, useEffect } from 'react';
+import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
+import toast from 'react-hot-toast';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+const FILE_SIZE_LIMITS = {
+  WARNING_THRESHOLD: 2 * 1024 * 1024, // 2MB
+  MAX_WITHOUT_COMPRESSION: 5 * 1024 * 1024, // 5MB
+};
 
 export default function CreateVillageOfficialPage() {
   const router = useRouter();
@@ -28,7 +35,12 @@ export default function CreateVillageOfficialPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [compressedFile, setCompressedFile] = useState<File | null>(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [compressedPreviewUrl, setCompressedPreviewUrl] = useState<string | null>(null);
+  const [compressing, setCompressing] = useState(false);
+  const [enableCompression, setEnableCompression] = useState(true);
+  const [showCompressionPreview, setShowCompressionPreview] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<string>("");
   const [dusunNumber, setDusunNumber] = useState<string>("");
   const [customPosition, setCustomPosition] = useState<string>("");
@@ -52,7 +64,84 @@ export default function CreateVillageOfficialPage() {
     }
   }, [officials, setValue]);
 
+  useEffect(() => {
+    // Cleanup the object URL when the component unmounts or a new file is selected
+    return () => {
+      if (imagePreviewUrl) {
+        URL.revokeObjectURL(imagePreviewUrl);
+      }
+      if (compressedPreviewUrl) {
+        URL.revokeObjectURL(compressedPreviewUrl);
+      }
+    };
+  }, [imagePreviewUrl, compressedPreviewUrl]);
 
+  const performCompression = async (file: File) => {
+    setCompressing(true);
+    try {
+      const compressed = await compressImage(file);
+      setCompressedFile(compressed);
+      setCompressedPreviewUrl(URL.createObjectURL(compressed));
+      setShowCompressionPreview(true);
+      
+      const savings = calculateSavings(file.size, compressed.size);
+      if (savings > 0) {
+        toast.success(
+          `Compressed: ${formatFileSize(file.size)} → ${formatFileSize(compressed.size)} (${savings}% saved)`,
+          { duration: 4000 }
+        );
+      }
+    } catch (error) {
+      console.error('Compression failed:', error);
+      toast.error('Compression gagal. Akan upload file original.');
+      setCompressedFile(null);
+    } finally {
+      setCompressing(false);
+    }
+  };
+
+  const handleCompressionToggle = async (enabled: boolean) => {
+    setEnableCompression(enabled);
+    
+    if (enabled && uploadedFile && !compressedFile) {
+      await performCompression(uploadedFile);
+    } else if (!enabled) {
+      setCompressedFile(null);
+      setCompressedPreviewUrl(null);
+      setShowCompressionPreview(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) return;
+
+    setUploadedFile(file);
+    setCompressedFile(null);
+    setShowCompressionPreview(false);
+    setImagePreviewUrl(URL.createObjectURL(file));
+
+    // Show warning for large files
+    if (file.size > FILE_SIZE_LIMITS.WARNING_THRESHOLD) {
+      toast(
+        `⚠️ File besar (${formatFileSize(file.size)}). Compression direkomendasikan untuk upload lebih cepat.`,
+        { 
+          duration: 5000,
+          icon: '⚠️',
+          style: {
+            background: '#FEF3C7',
+            color: '#92400E',
+            border: '1px solid #FCD34D',
+          },
+        }
+      );
+    }
+    
+    // Auto-compress if enabled
+    if (enableCompression) {
+      await performCompression(file);
+    }
+  };
 
   const onSubmit = async (data: OfficialFormData) => {
     setSubmitting(true);
@@ -67,8 +156,19 @@ export default function CreateVillageOfficialPage() {
 
       let photo_url = '';
       if (uploadedFile) {
+        // Determine which file to upload
+        const fileToUpload = enableCompression && compressedFile ? compressedFile : uploadedFile;
+        
+        // Check size limit without compression
+        if (!enableCompression && fileToUpload.size > FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION) {
+          throw new Error(
+            `File terlalu besar (${formatFileSize(fileToUpload.size)}). ` +
+            `Maksimal ${formatFileSize(FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION)} tanpa compression.`
+          );
+        }
+
         const formData = new FormData();
-        formData.append('file', uploadedFile);
+        formData.append('file', fileToUpload);
 
         const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
           method: 'POST',
@@ -205,26 +305,103 @@ export default function CreateVillageOfficialPage() {
           )}
           <div className="mb-4">
             <label htmlFor="photo" className="block text-gray-700 text-sm font-bold mb-2">Foto</label>
-            {imagePreviewUrl && (
-              <div className="mb-2">
-                <Image src={imagePreviewUrl} alt="Image Preview" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
-              </div>
-            )}
             <input
               type="file"
               id="photo"
-              onChange={(e) => {
-                const file = e.target.files ? e.target.files[0] : null;
-                setUploadedFile(file);
-                if (file) {
-                  setImagePreviewUrl(URL.createObjectURL(file));
-                } else {
-                  setImagePreviewUrl(null);
-                }
-              }}
+              accept="image/*"
+              onChange={handleFileChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
             />
+            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP</p>
           </div>
+
+          {/* Compression Option */}
+          {uploadedFile && (
+            <div className="mb-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={enableCompression}
+                  onChange={(e) => handleCompressionToggle(e.target.checked)}
+                  className="w-4 h-4"
+                />
+                <span className="font-medium">
+                  Compress image untuk upload lebih cepat (Recommended)
+                </span>
+              </label>
+              <p className="text-sm text-gray-600 mt-1 ml-6">
+                Quality: 90% - Hampir tidak ada perbedaan visual, tapi upload jauh lebih cepat
+              </p>
+            </div>
+          )}
+
+          {/* Compressing Status */}
+          {compressing && (
+            <div className="mb-4 flex items-center gap-2 text-blue-600">
+              <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <span>Compressing image...</span>
+            </div>
+          )}
+
+          {/* Before/After Preview */}
+          {showCompressionPreview && compressedFile && uploadedFile && (
+            <div className="mb-4 bg-gray-50 border rounded-lg p-4">
+              <h4 className="font-medium mb-3">Preview Compression:</h4>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Original */}
+                <div>
+                  <p className="text-sm font-medium mb-2">Original</p>
+                  <div className="border rounded overflow-hidden">
+                    <Image
+                      src={imagePreviewUrl || ''}
+                      alt="Original"
+                      width={200}
+                      height={150}
+                      className="w-full h-32 object-cover"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Size: {formatFileSize(uploadedFile.size)}
+                  </p>
+                </div>
+                
+                {/* Compressed */}
+                <div>
+                  <p className="text-sm font-medium mb-2">Compressed</p>
+                  <div className="border rounded overflow-hidden">
+                    <Image
+                      src={compressedPreviewUrl || ''}
+                      alt="Compressed"
+                      width={200}
+                      height={150}
+                      className="w-full h-32 object-cover"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Size: {formatFileSize(compressedFile.size)}
+                  </p>
+                  <p className="text-sm text-green-600 font-medium">
+                    Saved: {calculateSavings(uploadedFile.size, compressedFile.size)}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* File Size Warning */}
+          {uploadedFile && !enableCompression && uploadedFile.size > FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION && (
+            <div className="mb-4 bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800 font-medium">
+                ⚠️ File terlalu besar ({formatFileSize(uploadedFile.size)})
+              </p>
+              <p className="text-sm text-red-600 mt-1">
+                Maksimal {formatFileSize(FILE_SIZE_LIMITS.MAX_WITHOUT_COMPRESSION)} tanpa compression. Silakan aktifkan compression atau pilih file lebih kecil.
+              </p>
+            </div>
+          )}
           <div className="mb-4">
             <label htmlFor="bio" className="block text-gray-700 text-sm font-bold mb-2">Bio</label>
             <textarea
