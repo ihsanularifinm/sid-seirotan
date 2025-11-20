@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ihsanularifinm/sid-seirotan/backend/config"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
 )
@@ -64,8 +66,61 @@ func (h *SiteSettingsHandler) GetByGroup(c *gin.Context) {
 	c.JSON(http.StatusOK, settingsMap)
 }
 
+// EnsureSettingsExist checks if settings exist and creates defaults if needed
+func (h *SiteSettingsHandler) EnsureSettingsExist() error {
+	// Get all existing settings
+	existingSettings, err := h.repo.GetAll()
+	if err != nil {
+		log.Printf("Error fetching existing settings: %v", err)
+		return err
+	}
+
+	// Create a map of existing setting keys for quick lookup
+	existingKeys := make(map[string]bool)
+	for _, setting := range existingSettings {
+		existingKeys[setting.SettingKey] = true
+	}
+
+	// Get default settings schema
+	defaultSettings := config.GetAllDefaultSettings()
+
+	// Prepare settings to create (only missing ones)
+	var settingsToCreate []models.SiteSetting
+	for _, schema := range defaultSettings {
+		// Only create if doesn't exist
+		if !existingKeys[schema.Key] {
+			settingsToCreate = append(settingsToCreate, models.SiteSetting{
+				SettingKey:   schema.Key,
+				SettingValue: &schema.DefaultValue,
+				SettingGroup: schema.Group,
+			})
+		}
+	}
+
+	// Bulk insert missing settings
+	if len(settingsToCreate) > 0 {
+		log.Printf("Creating %d missing settings", len(settingsToCreate))
+		if err := h.repo.BulkUpsert(settingsToCreate); err != nil {
+			log.Printf("Error creating default settings: %v", err)
+			return err
+		}
+		log.Printf("Successfully created %d default settings", len(settingsToCreate))
+	} else {
+		log.Println("All settings already exist, no initialization needed")
+	}
+
+	return nil
+}
+
 // GetAllAdmin - Admin endpoint to get all settings with full details
 func (h *SiteSettingsHandler) GetAllAdmin(c *gin.Context) {
+	// Auto-initialize if needed
+	if err := h.EnsureSettingsExist(); err != nil {
+		log.Printf("Failed to initialize settings: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize settings"})
+		return
+	}
+
 	settings, err := h.repo.GetAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch settings"})

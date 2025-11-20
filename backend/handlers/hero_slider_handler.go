@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ihsanularifinm/sid-seirotan/backend/config"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
 )
@@ -17,8 +19,40 @@ func NewHeroSliderHandler(repo repositories.HeroSliderRepository) *HeroSliderHan
 	return &HeroSliderHandler{repo: repo}
 }
 
+// EnsureHeroSliderExists checks if at least one active slider exists and creates default if needed
+func (h *HeroSliderHandler) EnsureHeroSliderExists() error {
+	// Check if any active sliders exist
+	sliders, err := h.repo.GetActive()
+	if err != nil {
+		log.Printf("Error fetching active sliders: %v", err)
+		return err
+	}
+
+	// If no active sliders, create default
+	if len(sliders) == 0 {
+		log.Println("No active hero sliders found, creating default slider")
+		defaultSlider := config.GetDefaultHeroSlider()
+		if err := h.repo.Create(&defaultSlider); err != nil {
+			log.Printf("Error creating default hero slider: %v", err)
+			return err
+		}
+		log.Println("Successfully created default hero slider")
+	} else {
+		log.Printf("Found %d active hero slider(s), no initialization needed", len(sliders))
+	}
+
+	return nil
+}
+
 // GetActive - Public endpoint to get active sliders
 func (h *HeroSliderHandler) GetActive(c *gin.Context) {
+	// Auto-initialize if needed
+	if err := h.EnsureHeroSliderExists(); err != nil {
+		log.Printf("Failed to initialize hero sliders: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize hero sliders"})
+		return
+	}
+
 	sliders, err := h.repo.GetActive()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch hero sliders"})
