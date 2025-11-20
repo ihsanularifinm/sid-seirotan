@@ -61,6 +61,8 @@ POSTGRES_PASSWORD=your_strong_password_here
 JWT_SECRET=your_random_jwt_secret_min_32_chars_here
 
 # Superadmin Password
+# CATATAN: Jika password mengandung $, escape dengan $$ (double dollar)
+# Contoh: Pa$word123 harus ditulis Pa$$word123
 SUPERADMIN_DEFAULT_PASSWORD=your_admin_password_here
 
 # Production URLs (sesuaikan dengan domain Anda)

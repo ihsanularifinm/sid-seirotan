@@ -119,6 +119,42 @@ docker volume rm sid-seirotan_postgres_data
 docker compose up --build
 ```
 
+## Warning: Variable "R" is not set
+
+### Penyebab:
+Password atau secret key mengandung karakter `$` yang Docker Compose anggap sebagai variable.
+
+### Contoh masalah:
+```env
+SUPERADMIN_DEFAULT_PASSWORD=1q2w#E$R
+```
+Docker membaca `$R` sebagai variable yang tidak terdefinisi.
+
+### Solusi:
+
+**Opsi 1: Escape dengan double $$**
+```env
+SUPERADMIN_DEFAULT_PASSWORD=1q2w#E$$R
+```
+
+**Opsi 2: Ganti password tanpa $**
+```env
+SUPERADMIN_DEFAULT_PASSWORD=1q2w3e4R
+```
+
+**Opsi 3: Gunakan quotes di docker-compose.yml**
+Edit `docker-compose.yml`:
+```yaml
+environment:
+  - SUPERADMIN_DEFAULT_PASSWORD='1q2w#E$R'
+```
+
+Setelah fix, rebuild:
+```bash
+docker compose down
+docker compose up --build -d
+```
+
 ## Useful Commands
 
 ```bash
