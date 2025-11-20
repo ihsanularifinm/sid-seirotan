@@ -315,9 +315,17 @@ export default function EditHeroSliderForm() {
               onChange={handleFileChange}
               className="w-full border rounded px-3 py-2"
             />
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-gray-500 mt-1 mb-2">
               Upload new file to replace existing media, or leave empty to keep current media
             </p>
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <p className="text-sm font-medium text-blue-900 mb-1">📐 Ukuran yang Direkomendasikan:</p>
+              <ul className="text-xs text-blue-800 space-y-1 ml-4">
+                <li>• <strong>Gambar:</strong> 1920x1080 pixels (16:9 ratio) - Format: JPG, PNG, WebP</li>
+                <li>• <strong>Video:</strong> 1920x1080 pixels (Full HD) - Format: MP4, WebM</li>
+                <li>• <strong>Ukuran File:</strong> Maksimal 5MB (gunakan compression untuk file besar)</li>
+              </ul>
+            </div>
           </div>
 
           <div>
