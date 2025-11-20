@@ -40,22 +40,38 @@ Cara termudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
     ```
 
 2.  **Konfigurasi Environment:**
-    Buat file `.env` di root direktori (jika belum ada) dan sesuaikan variabelnya:
-    ```env
-    POSTGRES_DB=desa_sei_rotan
-    POSTGRES_USER=postgres
-    POSTGRES_PASSWORD=postgres
+    Salin file `.env.example` menjadi `.env` dan sesuaikan jika perlu:
+    ```bash
+    cp .env.example .env
     ```
+    
+    **PENTING:** Untuk production, ganti nilai berikut di `.env`:
+    - `JWT_SECRET` - Gunakan random string minimal 32 karakter
+    - `POSTGRES_PASSWORD` - Gunakan password yang kuat
+    - `SUPERADMIN_DEFAULT_PASSWORD` - Password untuk user superadmin
+    - `ALLOWED_ORIGINS` - Domain production Anda
+    - `NEXT_PUBLIC_API_URL` - URL API production
 
 3.  **Jalankan Aplikasi:**
     ```bash
     docker compose up --build
     ```
+    
+    **Catatan:** 
+    - Backend akan otomatis menjalankan migrasi database saat pertama kali start
+    - User superadmin akan dibuat otomatis dengan username `superadmin`
+    - Tunggu hingga semua services ready (sekitar 30-60 detik)
 
 4.  **Akses Aplikasi:**
     -   **Frontend:** [http://localhost:3000](http://localhost:3000)
     -   **Backend API:** [http://localhost:8080](http://localhost:8080)
-    -   **Database:** Port `5433`
+    -   **Database:** Port `5432`
+    -   **Login Admin:** 
+        - Username: `superadmin`
+        - Password: Sesuai `SUPERADMIN_DEFAULT_PASSWORD` di `.env`
+
+5.  **Troubleshooting:**
+    Jika ada masalah, lihat [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Instalasi Manual
 
