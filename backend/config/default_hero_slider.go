@@ -11,15 +11,14 @@ func GetDefaultHeroSlider() models.HeroSlider {
 	// Fallback to local SVG if CDN is unavailable
 	mediaURL := "https://placehold.co/1920x1080/2563eb/ffffff?text=Selamat+Datang"
 	
-	mediaType := "image"
 	linkURL := "/profil"
 	linkText := "Pelajari Lebih Lanjut"
 
 	return models.HeroSlider{
-		Title:        &title,
+		Title:        title,
 		Subtitle:     &subtitle,
 		MediaURL:     mediaURL,
-		MediaType:    mediaType,
+		MediaType:    models.MediaTypeImage,
 		LinkURL:      &linkURL,
 		LinkText:     &linkText,
 		DisplayOrder: 1,
