@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-export const revalidate = 10; // Revalidate at most once every 10 seconds
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: "Selamat Datang di Website Resmi Desa Sei Rotan",
