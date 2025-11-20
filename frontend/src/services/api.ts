@@ -91,13 +91,39 @@ export const getOfficials = async (): Promise<VillageOfficial[]> => {
   return response.data;
 };
 
-// Hero Sliders
+// Hero Sliders (Public)
 export const getHeroSliders = async () => {
   const response = await api.get('/api/v1/hero-sliders');
   return response.data;
 };
 
-// Settings
+// Hero Sliders (Admin)
+export const getAllHeroSliders = async () => {
+  const response = await api.get('/api/v1/admin/hero-sliders');
+  return response.data;
+};
+
+export const getHeroSliderById = async (id: number) => {
+  const response = await api.get(`/api/v1/admin/hero-sliders/${id}`);
+  return response.data;
+};
+
+export const createHeroSlider = async (data: any) => {
+  const response = await api.post('/api/v1/admin/hero-sliders', data);
+  return response.data;
+};
+
+export const updateHeroSlider = async (id: number, data: any) => {
+  const response = await api.put(`/api/v1/admin/hero-sliders/${id}`, data);
+  return response.data;
+};
+
+export const deleteHeroSlider = async (id: number) => {
+  const response = await api.delete(`/api/v1/admin/hero-sliders/${id}`);
+  return response.data;
+};
+
+// Settings (Public)
 export const getSettings = async () => {
   const response = await api.get('/api/v1/settings');
   return response.data;
@@ -105,6 +131,22 @@ export const getSettings = async () => {
 
 export const getSettingsByGroup = async (group: string) => {
   const response = await api.get(`/api/v1/settings/${group}`);
+  return response.data;
+};
+
+// Settings (Admin)
+export const getAllSettingsAdmin = async () => {
+  const response = await api.get('/api/v1/admin/settings');
+  return response.data;
+};
+
+export const bulkUpdateSettings = async (settings: any[]) => {
+  const response = await api.put('/api/v1/admin/settings', settings);
+  return response.data;
+};
+
+export const upsertSetting = async (setting: any) => {
+  const response = await api.post('/api/v1/admin/settings', setting);
   return response.data;
 };
 
