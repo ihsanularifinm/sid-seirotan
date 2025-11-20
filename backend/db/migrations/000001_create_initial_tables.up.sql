@@ -1,7 +1,9 @@
+-- Create ENUM types
 CREATE TYPE user_role AS ENUM ('superadmin', 'admin', 'author');
 CREATE TYPE news_status AS ENUM ('draft', 'published', 'archived');
 CREATE TYPE potential_type AS ENUM ('umkm', 'tourism', 'agriculture', 'other');
 
+-- Create users table
 CREATE TABLE users (
     id BIGSERIAL PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
@@ -13,6 +15,7 @@ CREATE TABLE users (
     deleted_at TIMESTAMP
 );
 
+-- Create news table (with published_at column included)
 CREATE TABLE news (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -20,6 +23,7 @@ CREATE TABLE news (
     content TEXT NOT NULL,
     featured_image_url VARCHAR(255),
     status news_status NOT NULL DEFAULT 'draft',
+    published_at TIMESTAMPTZ,
     author_id BIGINT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -27,6 +31,7 @@ CREATE TABLE news (
     CONSTRAINT fk_author FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
+-- Create village_officials table
 CREATE TABLE village_officials (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -39,6 +44,7 @@ CREATE TABLE village_officials (
     deleted_at TIMESTAMP
 );
 
+-- Create services table
 CREATE TABLE services (
     id BIGSERIAL PRIMARY KEY,
     service_name VARCHAR(255) NOT NULL,
@@ -49,6 +55,7 @@ CREATE TABLE services (
     deleted_at TIMESTAMP
 );
 
+-- Create potentials table
 CREATE TABLE potentials (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
@@ -60,6 +67,7 @@ CREATE TABLE potentials (
     deleted_at TIMESTAMP
 );
 
+-- Create site_settings table
 CREATE TABLE site_settings (
     id BIGSERIAL PRIMARY KEY,
     setting_key VARCHAR(100) UNIQUE NOT NULL,
@@ -70,7 +78,8 @@ CREATE TABLE site_settings (
     deleted_at TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS contacts (
+-- Create contacts table
+CREATE TABLE contacts (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
