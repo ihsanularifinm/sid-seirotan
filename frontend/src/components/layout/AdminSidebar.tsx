@@ -2,11 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Newspaper, Users, Briefcase, Zap, MessageSquare, Image, Settings } from 'lucide-react';
+import { Home, Newspaper, Users, Briefcase, Zap, MessageSquare, Image, Settings, FileText } from 'lucide-react';
 
 const navLinks = [
   { href: '/admin/dashboard', label: 'Dashboard', icon: Home },
   { href: '/admin/hero-sliders', label: 'Hero Slider', icon: Image },
+  { href: '/admin/profile', label: 'Profil Desa', icon: FileText },
   { href: '/admin/news', label: 'Berita', icon: Newspaper },
   { href: '/admin/officials', label: 'Aparatur Desa', icon: Users },
   { href: '/admin/services', label: 'Layanan', icon: Briefcase },
