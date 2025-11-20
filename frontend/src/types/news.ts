@@ -13,6 +13,7 @@ export const schema = yup.object().shape({
   title: yup.string().required('Judul tidak boleh kosong'),
   content: yup.string().required('Isi berita tidak boleh kosong'),
   status: yup.string().oneOf(['draft', 'published', 'archived']).required(),
+  published_at: yup.string().nullable(),
     featured_image_url: yup.string().optional().default(''),
 });
 

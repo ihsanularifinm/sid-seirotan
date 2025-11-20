@@ -72,7 +72,11 @@ export default function CreateNewsPage() {
         featured_image_url = uploadData.url;
       }
 
-      const newsData = { ...data, featured_image_url };
+      const newsData = {
+        ...data,
+        featured_image_url,
+        published_at: data.published_at ? new Date(data.published_at).toISOString() : null,
+      };
 
       const res = await fetch(`${apiUrl}/api/v1/admin/posts`, {
         method: 'POST',
@@ -162,6 +166,16 @@ export default function CreateNewsPage() {
               <option value="published">Published</option>
               <option value="archived">Archived</option>
             </select>
+          </div>
+          <div className="mb-6">
+            <label htmlFor="published_at" className="block text-gray-700 text-sm font-bold mb-2">Tanggal Publikasi (Opsional)</label>
+            <input
+              type="datetime-local"
+              id="published_at"
+              {...register('published_at')}
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            />
+            <p className="text-gray-500 text-xs italic mt-1">Biarkan kosong untuk publikasi segera (jika status Published).</p>
           </div>
           <div className="flex items-center justify-between">
             <button
