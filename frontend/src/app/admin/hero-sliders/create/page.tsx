@@ -58,9 +58,17 @@ export default function CreateHeroSliderPage() {
       
       // Show warning for large files
       if (file.size > FILE_SIZE_LIMITS.WARNING_THRESHOLD) {
-        toast.warning(
-          `File besar (${formatFileSize(file.size)}). Compression direkomendasikan untuk upload lebih cepat.`,
-          { duration: 5000 }
+        toast(
+          `⚠️ File besar (${formatFileSize(file.size)}). Compression direkomendasikan untuk upload lebih cepat.`,
+          { 
+            duration: 5000,
+            icon: '⚠️',
+            style: {
+              background: '#FEF3C7',
+              color: '#92400E',
+              border: '1px solid #FCD34D',
+            },
+          }
         );
       }
       
