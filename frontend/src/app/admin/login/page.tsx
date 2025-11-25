@@ -34,8 +34,12 @@ export default function LoginPage() {
       Cookies.set('jwt_token', data.token, { expires: 1 }); // Expires in 1 day
       Cookies.set('user_role', data.role, { expires: 1 }); // Expires in 1 day
 
-      // Redirect to the dashboard
-      router.push('/admin/dashboard');
+      // Redirect based on role
+      if (data.role === 'author') {
+        router.push('/admin/news');
+      } else {
+        router.push('/admin/dashboard');
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

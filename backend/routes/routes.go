@@ -7,9 +7,12 @@ import (
 )
 
 // SetupPublicRoutes configures all public-facing API routes
-func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler) {
+func SetupPublicRoutes(public *gin.RouterGroup, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, serviceHandler *handlers.ServiceHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler, pageViewRepo interface{}) {
 	// Apply rate limiting: 5 requests per second, with a burst of 10
 	public.Use(middlewares.RateLimitMiddleware(5, 10))
+	
+	// Apply analytics tracking middleware
+	// public.Use(middlewares.AnalyticsMiddleware(pageViewRepo))
 
 	public.Static("/uploads", "uploads")
 	public.GET("/posts", newsHandler.GetPublishedNews)
@@ -40,8 +43,10 @@ func SetupAuthRoutes(auth *gin.RouterGroup, authHandler *handlers.AuthHandler) {
 }
 
 // SetupAdminRoutes configures all admin-facing API routes
-func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, serviceHandler *handlers.ServiceHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler) {
+func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler, newsHandler *handlers.NewsHandler, villageOfficialHandler *handlers.VillageOfficialHandler, serviceHandler *handlers.ServiceHandler, potentialHandler *handlers.PotentialHandler, contactHandler *handlers.ContactHandler, heroSliderHandler *handlers.HeroSliderHandler, siteSettingsHandler *handlers.SiteSettingsHandler, dashboardHandler *handlers.DashboardHandler) {
+	// Upload endpoints
 	admin.POST("/upload", middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"), handlers.UploadFile)
+	admin.POST("/upload-with-naming", middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"), handlers.UploadWithNaming)
 
 	// User Management Routes
 	userRoutes := admin.Group("/users")
@@ -56,7 +61,7 @@ func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler,
 
 	// News Management Routes
 	newsRoutes := admin.Group("/posts")
-	newsRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
+	newsRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin", "author"))
 	{
 		newsRoutes.GET("", newsHandler.GetAllNewsForAdmin)
 		newsRoutes.POST("", newsHandler.CreateNews)
@@ -118,6 +123,20 @@ func SetupAdminRoutes(admin *gin.RouterGroup, userHandler *handlers.UserHandler,
 		settingsAdminRoutes.GET("", siteSettingsHandler.GetAllAdmin)
 		settingsAdminRoutes.PUT("", siteSettingsHandler.BulkUpdate)
 		settingsAdminRoutes.POST("", siteSettingsHandler.Upsert)
+	}
+
+	// Profile Management Routes
+	profileRoutes := admin.Group("/profile")
+	profileRoutes.Use(middlewares.AuthMiddleware())
+	{
+		profileRoutes.PUT("/change-password", userHandler.ChangePassword)
+	}
+
+	// Dashboard Routes
+	dashboardRoutes := admin.Group("/dashboard")
+	dashboardRoutes.Use(middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin", "superadmin"))
+	{
+		dashboardRoutes.GET("/stats", dashboardHandler.GetStats)
 	}
 
 }

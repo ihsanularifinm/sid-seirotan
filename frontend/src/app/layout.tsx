@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import MainLayout from "@/components/layout/MainLayout";
 import { Toaster } from "react-hot-toast";
+import { SettingsProvider } from "@/contexts/SettingsContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -44,7 +45,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="canonical" href="https://seirotan.desa.id" />
       </head>
       <body className={inter.className}>
-        <MainLayout>{children}</MainLayout>
+        <SettingsProvider>
+          <MainLayout>{children}</MainLayout>
+        </SettingsProvider>
         <Toaster position="top-right" />
       </body>
     </html>

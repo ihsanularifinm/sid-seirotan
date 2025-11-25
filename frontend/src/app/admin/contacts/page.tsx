@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import AdminLayout from '@/components/layout/AdminLayout';
 import Cookies from 'js-cookie';
+import { useRoleProtection } from '@/hooks/useRoleProtection';
 
 type Contact = {
   id: number;
@@ -15,6 +16,9 @@ type Contact = {
 };
 
 export default function AdminContactsPage() {
+  // Protect this page - only admin and superadmin can access
+  const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
+  
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,7 +61,7 @@ export default function AdminContactsPage() {
     <AdminLayout>
       <h1 className="text-3xl font-bold text-gray-800 mb-6">Pesan Masuk</h1>
 
-      {loading && <p>Loading...</p>}
+      {(loading || roleLoading) && <p>Loading...</p>}
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {!loading && !error && (

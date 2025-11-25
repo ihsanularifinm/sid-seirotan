@@ -6,21 +6,24 @@ import { getAllSettingsAdmin, bulkUpdateSettings } from '@/services/api';
 import { SiteSetting } from '@/types/settings';
 import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
+import LogoUpload from '@/components/admin/LogoUpload';
+import { useRoleProtection } from '@/hooks/useRoleProtection';
 
-type SettingGroup = 'general' | 'profile' | 'social';
+type SettingGroup = 'general' | 'social';
 
 interface GroupedSettings {
   general: SiteSetting[];
-  profile: SiteSetting[];
   social: SiteSetting[];
 }
 
 export default function AdminSettingsPage() {
+  // Protect this page - only admin and superadmin can access
+  const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
+  
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingGroup>('general');
   const [settings, setSettings] = useState<GroupedSettings>({
     general: [],
-    profile: [],
     social: [],
   });
   const [loading, setLoading] = useState(true);
@@ -35,10 +38,10 @@ export default function AdminSettingsPage() {
     try {
       const data = await getAllSettingsAdmin();
       
-      // Backend returns grouped data: { general: [...], profile: [...], social: [...] }
+      // Backend returns grouped data: { general: [...], social: [...] }
+      // Profile settings are now in separate page
       const grouped: GroupedSettings = {
         general: data.general || [],
-        profile: data.profile || [],
         social: data.social || [],
       };
 
@@ -115,7 +118,7 @@ export default function AdminSettingsPage() {
     return 'text';
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <AdminLayout>
         <div className="animate-pulse">
@@ -137,8 +140,11 @@ export default function AdminSettingsPage() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Site Settings</h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold mb-2">Site Settings</h1>
+        <p className="text-gray-600">
+          Konfigurasi umum website (nama, kontak, logo, social media)
+        </p>
       </div>
 
       {/* Tabs */}
@@ -154,16 +160,6 @@ export default function AdminSettingsPage() {
           General
         </button>
         <button
-          onClick={() => setActiveTab('profile')}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === 'profile'
-              ? 'border-b-2 border-blue-600 text-blue-600'
-              : 'text-gray-600 hover:text-gray-800'
-          }`}
-        >
-          Profile
-        </button>
-        <button
           onClick={() => setActiveTab('social')}
           className={`px-4 py-2 font-medium transition-colors ${
             activeTab === 'social'
@@ -177,8 +173,26 @@ export default function AdminSettingsPage() {
 
       {/* Settings Form */}
       <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="space-y-4">
+        <div className="space-y-6">
           {settings[activeTab].map((setting) => {
+            // Handle logo separately with LogoUpload component
+            if (setting.setting_key === 'site_logo') {
+              return (
+                <div key={setting.id} className="border-b pb-6">
+                  <LogoUpload
+                    currentLogo={formData[setting.setting_key]}
+                    onUploadSuccess={(url) => {
+                      handleInputChange(setting.setting_key, url);
+                      // Auto-save logo after upload
+                      setTimeout(() => {
+                        handleSave();
+                      }, 500);
+                    }}
+                  />
+                </div>
+              );
+            }
+
             const fieldType = getFieldType(setting.setting_key);
             
             return (

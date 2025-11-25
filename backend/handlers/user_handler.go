@@ -27,6 +27,18 @@ type UpdateUserPayload struct {
 	Role     models.UserRole `json:"role"`
 }
 
+// ChangePasswordRequest defines the expected input for changing password
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"current_password" binding:"required"`
+	NewPassword     string `json:"new_password" binding:"required,min=6"`
+	ConfirmPassword string `json:"confirm_password" binding:"required"`
+}
+
+// ChangePasswordResponse defines the response for successful password change
+type ChangePasswordResponse struct {
+	Message string `json:"message"`
+}
+
 // UserHandler handles user-related requests
 type UserHandler struct {
 	UserRepository repositories.UserRepository
@@ -209,4 +221,43 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "User deleted successfully"})
+}
+
+// ChangePassword allows an authenticated admin to change their own password
+func (h *UserHandler) ChangePassword(c *gin.Context) {
+	// Extract user ID from JWT token context
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: User ID not found in token"})
+		return
+	}
+
+	// Parse and validate request body
+	var req ChangePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.RespondError(c, http.StatusBadRequest, "Invalid request body", err)
+		return
+	}
+
+	// Validate that new password and confirm password match
+	if req.NewPassword != req.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "new password and confirm password do not match"})
+		return
+	}
+
+	// Call repository to change password
+	err := h.UserRepository.ChangePassword(userID.(uint64), req.CurrentPassword, req.NewPassword)
+	if err != nil {
+		if err.Error() == "current password is incorrect" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "current password is incorrect"})
+			return
+		}
+		utils.RespondError(c, http.StatusInternalServerError, "Failed to update password", err)
+		return
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, ChangePasswordResponse{
+		Message: "Password changed successfully",
+	})
 }

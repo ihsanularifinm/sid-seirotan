@@ -54,14 +54,9 @@ func AuthMiddleware() gin.HandlerFunc {
 }
 
 // RoleMiddleware checks if the authenticated user has one of the required roles
+// NOTE: This middleware assumes AuthMiddleware has already been called
 func RoleMiddleware(requiredRoles ...string) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Ensure AuthMiddleware has run first
-		AuthMiddleware()(c) // Call AuthMiddleware directly
-		if c.IsAborted() {
-			return // If AuthMiddleware aborted, stop here
-		}
-
 		// Get role from context, set by AuthMiddleware
 		role, exists := c.Get("userRole")
 		if !exists {

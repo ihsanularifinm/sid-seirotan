@@ -4,18 +4,27 @@
  * @param url - Upload endpoint URL
  * @param token - Authorization token
  * @param onProgress - Callback function to track upload progress (0-100)
+ * @param additionalData - Optional additional form data to send with upload
  * @returns Promise with upload response data
  */
 export async function uploadWithProgress(
   file: File,
   url: string,
   token: string,
-  onProgress: (percentage: number) => void
-): Promise<{ url: string }> {
+  onProgress: (percentage: number) => void,
+  additionalData?: Record<string, string>
+): Promise<{ url: string; filename?: string }> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     const formData = new FormData();
     formData.append('file', file);
+    
+    // Append additional data if provided
+    if (additionalData) {
+      Object.entries(additionalData).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+    }
 
     // Track upload progress
     xhr.upload.addEventListener('progress', (e) => {

@@ -12,6 +12,7 @@ type PotentialRepository interface {
 	GetAllPotentials() ([]models.Potential, error)
 	UpdatePotential(potential *models.Potential) error
 	DeletePotential(id uint64) error
+	Count() (int64, error)
 }
 
 // GormPotentialRepository implements PotentialRepository using GORM
@@ -51,4 +52,11 @@ func (r *GormPotentialRepository) UpdatePotential(potential *models.Potential) e
 // DeletePotential deletes a potential record by its ID (soft delete)
 func (r *GormPotentialRepository) DeletePotential(id uint64) error {
 	return r.db.Delete(&models.Potential{}, id).Error
+}
+
+// Count returns the total number of potentials
+func (r *GormPotentialRepository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Potential{}).Count(&count).Error
+	return count, err
 }

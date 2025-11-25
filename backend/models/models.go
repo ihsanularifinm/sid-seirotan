@@ -72,6 +72,8 @@ type VillageOfficial struct {
 	PhotoURL     *string        `gorm:"type:varchar(255)" json:"photo_url,omitempty"`
 	Bio          *string        `gorm:"type:text" json:"bio,omitempty"`
 	DisplayOrder int            `gorm:"not null;default:0" json:"display_order"`
+	HamletNumber *int           `gorm:"type:integer" json:"hamlet_number,omitempty"`
+	HamletName   *string        `gorm:"type:varchar(100)" json:"hamlet_name,omitempty"`
 	CreatedAt    time.Time      `gorm:"not null;default:now()" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"not null;default:now()" json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
@@ -137,4 +139,16 @@ type HeroSlider struct {
 	CreatedAt    time.Time      `gorm:"not null;default:now()" json:"created_at"`
 	UpdatedAt    time.Time      `gorm:"not null;default:now()" json:"updated_at"`
 	DeletedAt    gorm.DeletedAt `gorm:"index" json:"deleted_at,omitempty"`
+}
+
+// PageView represents the page_views table for analytics tracking
+type PageView struct {
+	ID        uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	PageURL   string    `gorm:"type:varchar(500);not null" json:"page_url"`
+	PageTitle *string   `gorm:"type:varchar(255)" json:"page_title,omitempty"`
+	VisitorID string    `gorm:"type:varchar(100);not null" json:"visitor_id"`
+	UserAgent *string   `gorm:"type:text" json:"user_agent,omitempty"`
+	Referer   *string   `gorm:"type:varchar(500)" json:"referer,omitempty"`
+	ViewedAt  time.Time `gorm:"not null;default:now()" json:"viewed_at"`
+	CreatedAt time.Time `gorm:"not null;default:now()" json:"created_at"`
 }

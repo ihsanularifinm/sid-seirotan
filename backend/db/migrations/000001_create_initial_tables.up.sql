@@ -32,18 +32,22 @@ CREATE TABLE news (
     CONSTRAINT fk_author FOREIGN KEY (author_id) REFERENCES users(id)
 );
 
--- Create village_officials table
+-- Create village_officials table (with hamlet_name column)
 CREATE TABLE village_officials (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     position VARCHAR(255) NOT NULL,
     photo_url VARCHAR(255),
     bio TEXT,
+    hamlet_name VARCHAR(100),
     display_order INT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP
 );
+
+-- Add comment for hamlet_name column
+COMMENT ON COLUMN village_officials.hamlet_name IS 'Custom hamlet identifier (e.g., IX-A, Makmur). If null, hamlet_number will be converted to Roman numeral for display.';
 
 -- Create services table
 CREATE TABLE services (
@@ -106,3 +110,21 @@ CREATE TABLE hero_sliders (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
     deleted_at TIMESTAMP
 );
+
+-- Create page_views table for analytics tracking
+CREATE TABLE page_views (
+    id BIGSERIAL PRIMARY KEY,
+    page_url VARCHAR(500) NOT NULL,
+    page_title VARCHAR(255),
+    visitor_id VARCHAR(100) NOT NULL,
+    user_agent TEXT,
+    referer VARCHAR(500),
+    viewed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for page_views table
+CREATE INDEX idx_page_views_viewed_at ON page_views(viewed_at);
+CREATE INDEX idx_page_views_page_url ON page_views(page_url);
+CREATE INDEX idx_page_views_visitor_id ON page_views(visitor_id);
+CREATE INDEX idx_page_views_url_viewed ON page_views(page_url, viewed_at);

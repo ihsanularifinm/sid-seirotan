@@ -6,27 +6,38 @@ import { getAllHeroSliders, deleteHeroSlider } from '@/services/api';
 import { HeroSlider } from '@/types/hero-slider';
 import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { useRoleProtection } from '@/hooks/useRoleProtection';
 
 export default function AdminHeroSlidersPage() {
+  // Protect this page - only admin and superadmin can access
+  const { loading: roleLoading, isAllowed } = useRoleProtection(['admin', 'superadmin']);
+  
   const router = useRouter();
   const [sliders, setSliders] = useState<HeroSlider[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchSliders();
-  }, []);
+    // Only fetch if role check is done and user is allowed
+    if (!roleLoading && isAllowed) {
+      fetchSliders();
+    }
+  }, [roleLoading, isAllowed]);
 
   const fetchSliders = async () => {
     try {
       const data = await getAllHeroSliders();
-      setSliders(data);
+      setSliders(data || []); // Ensure it's always an array
       setLoading(false);
     } catch (error: any) {
       if (error.response?.status === 401) {
         toast.error('Session expired. Please login again.');
         router.push('/admin/login');
+      } else if (error.response?.status === 403) {
+        // Access denied - will be handled by useRoleProtection redirect
+        setSliders([]);
       } else {
         toast.error('Failed to fetch sliders');
+        setSliders([]);
       }
       setLoading(false);
     }
@@ -44,7 +55,7 @@ export default function AdminHeroSlidersPage() {
     }
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <AdminLayout>
         <div className="animate-pulse">

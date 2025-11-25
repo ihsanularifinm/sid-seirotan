@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter, useParams } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -11,6 +11,7 @@ import { schema, NewsFormData } from '@/types/news';
 import { getMediaUrl } from '@/lib/mediaUrl';
 import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 import toast from 'react-hot-toast';
+import FilenamePreview from '@/components/admin/FilenamePreview';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -33,9 +34,13 @@ export default function EditNewsForm() {
     handleSubmit,
     formState: { errors },
     setValue,
+    control,
   } = useForm<NewsFormData>({
     resolver: yupResolver(schema),
   });
+  
+  // Watch title for filename preview
+  const title = useWatch({ control, name: 'title' });
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -181,8 +186,10 @@ export default function EditNewsForm() {
 
         const formData = new FormData();
         formData.append('file', fileToUpload);
+        formData.append('upload_type', 'news');
+        formData.append('title', data.title); // Use news title for filename
 
-        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload-with-naming`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -197,6 +204,11 @@ export default function EditNewsForm() {
 
         const uploadData = await uploadRes.json();
         featured_image_url = uploadData.url;
+        
+        // Show filename info
+        if (uploadData.filename) {
+          toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+        }
       }
 
       const newsData = { ...data, featured_image_url };
@@ -252,6 +264,7 @@ export default function EditNewsForm() {
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.title ? 'border-red-500' : ''}`}
             />
             {errors.title && <p className="text-red-500 text-xs italic">{errors.title.message}</p>}
+            {title && <FilenamePreview filename={title} uploadType="news" />}
           </div>
           <div className="mb-4">
             <label htmlFor="content" className="block text-gray-700 text-sm font-bold mb-2">Isi Berita</label>
@@ -278,7 +291,7 @@ export default function EditNewsForm() {
               onChange={handleFileChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
             />
-            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP. Leave empty to keep current image.</p>
+            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP | Rekomendasi: 800x600px atau 1200x800px. Leave empty to keep current image.</p>
           </div>
 
           {/* Compression Option */}

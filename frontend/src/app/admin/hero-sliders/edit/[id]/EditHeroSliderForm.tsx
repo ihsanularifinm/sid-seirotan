@@ -207,8 +207,10 @@ export default function EditHeroSliderForm() {
         setUploading(true);
         const uploadFormData = new FormData();
         uploadFormData.append('file', fileToUpload);
+        uploadFormData.append('upload_type', 'hero_slider');
+        uploadFormData.append('title', formData.title); // Use slider title for filename
 
-        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload-with-naming`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -223,6 +225,12 @@ export default function EditHeroSliderForm() {
 
         const uploadData = await uploadRes.json();
         media_url = uploadData.url;
+        
+        // Show filename info
+        if (uploadData.filename) {
+          toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+        }
+        
         setUploading(false);
       }
 

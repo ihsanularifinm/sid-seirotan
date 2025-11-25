@@ -12,6 +12,7 @@ type ServiceRepository interface {
 	GetAllServices() ([]models.Service, error)
 	UpdateService(service *models.Service) error
 	DeleteService(id uint64) error
+	Count() (int64, error)
 }
 
 // GormServiceRepository implements ServiceRepository using GORM
@@ -51,4 +52,11 @@ func (r *GormServiceRepository) UpdateService(service *models.Service) error {
 // DeleteService deletes a service record by its ID (soft delete)
 func (r *GormServiceRepository) DeleteService(id uint64) error {
 	return r.db.Delete(&models.Service{}, id).Error
+}
+
+// Count returns the total number of services
+func (r *GormServiceRepository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Service{}).Count(&count).Error
+	return count, err
 }

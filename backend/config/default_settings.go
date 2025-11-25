@@ -25,9 +25,9 @@ var DefaultSettings = []SettingSchema{
 	},
 	{
 		Key:          "site_logo",
-		DefaultValue: "/assets/img/logo-placeholder.png",
+		DefaultValue: "https://placehold.co/200x200/2563eb/ffffff?text=Logo+%7C+200x200px&font=montserrat",
 		Group:        "general",
-		Description:  "Path ke file logo",
+		Description:  "Logo website (PNG atau SVG, ukuran rekomendasi: 200x200px atau 400x400px)",
 	},
 	{
 		Key:          "contact_email",
@@ -126,6 +126,14 @@ var DefaultSettings = []SettingSchema{
 		DefaultValue: "[xxxxx]",
 		Group:        "profile",
 		Description:  "Kode pos",
+	},
+
+	// Government Settings (1 item)
+	{
+		Key:          "organizational_structure_image",
+		DefaultValue: "https://placehold.co/1200x800/e5e7eb/6b7280?text=Struktur+Organisasi+%7C+1200x800px&font=montserrat",
+		Group:        "government",
+		Description:  "Gambar struktur organisasi pemerintahan desa (ukuran rekomendasi: 1200x800px)",
 	},
 
 	// Social Media Settings (5 items)

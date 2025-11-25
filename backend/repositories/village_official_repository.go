@@ -12,6 +12,7 @@ type VillageOfficialRepository interface {
 	GetAllVillageOfficials() ([]models.VillageOfficial, error)
 	UpdateVillageOfficial(official *models.VillageOfficial) error
 	DeleteVillageOfficial(id uint64) error
+	Count() (int64, error)
 }
 
 // GormVillageOfficialRepository implements VillageOfficialRepository using GORM
@@ -37,9 +38,10 @@ func (r *GormVillageOfficialRepository) GetVillageOfficialByID(id uint64) (*mode
 }
 
 // GetAllVillageOfficials retrieves all village official records
+// Sorted by hamlet_number (nulls last), then display_order
 func (r *GormVillageOfficialRepository) GetAllVillageOfficials() ([]models.VillageOfficial, error) {
 	var officials []models.VillageOfficial
-	err := r.db.Order("display_order ASC").Find(&officials).Error
+	err := r.db.Order("hamlet_number ASC NULLS LAST, display_order ASC").Find(&officials).Error
 	return officials, err
 }
 
@@ -51,4 +53,11 @@ func (r *GormVillageOfficialRepository) UpdateVillageOfficial(official *models.V
 // DeleteVillageOfficial deletes a village official record by their ID (soft delete)
 func (r *GormVillageOfficialRepository) DeleteVillageOfficial(id uint64) error {
 	return r.db.Delete(&models.VillageOfficial{}, id).Error
+}
+
+// Count returns the total number of village officials
+func (r *GormVillageOfficialRepository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.VillageOfficial{}).Count(&count).Error
+	return count, err
 }

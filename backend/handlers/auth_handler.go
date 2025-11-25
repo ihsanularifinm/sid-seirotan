@@ -47,11 +47,6 @@ func (h *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// --- DEBUGGING LOGS ---
-	log.Printf("DEBUG: Password from login attempt for user '%s': %s", req.Username, req.Password)
-	log.Printf("DEBUG: Hashed password from DB for user '%s': %s", user.Username, user.PasswordHash)
-	// --- END DEBUGGING LOGS ---
-
 	// Compare password with the hashed password from the database
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
 	if err != nil {

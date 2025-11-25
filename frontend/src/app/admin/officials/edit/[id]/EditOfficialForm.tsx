@@ -12,6 +12,7 @@ import { schema } from '@/types/official';
 import { positions } from '@/data/positions';
 import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 import toast from 'react-hot-toast';
+import { toRomanNumeral } from '@/utils/romanNumerals';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,7 +21,10 @@ const FILE_SIZE_LIMITS = {
   MAX_WITHOUT_COMPRESSION: 5 * 1024 * 1024, // 5MB
 };
 
-type OfficialFormData = yup.InferType<typeof schema>;
+type OfficialFormData = yup.InferType<typeof schema> & {
+  hamlet_number?: number | null;
+  hamlet_name?: string | null;
+};
 
 export default function EditOfficialForm() {
   const router = useRouter();
@@ -47,6 +51,7 @@ export default function EditOfficialForm() {
     handleSubmit,
     formState: { errors },
     setValue,
+    control,
   } = useForm<OfficialFormData>({
     resolver: yupResolver(schema),
   });
@@ -150,6 +155,8 @@ export default function EditOfficialForm() {
         setValue('position', data.position);
         setValue('bio', data.bio);
         setValue('display_order', data.display_order);
+        setValue('hamlet_number', data.hamlet_number);
+        setValue('hamlet_name', data.hamlet_name);
         setExistingImageUrl(data.photo_url);
 
         const position = data.position;
@@ -157,7 +164,15 @@ export default function EditOfficialForm() {
           setSelectedPosition(position);
         } else if (position.startsWith("Kepala Dusun")) {
           setSelectedPosition("Kepala Dusun");
-          setDusunNumber(position.replace("Kepala Dusun ", ""));
+          const extractedText = position.replace("Kepala Dusun ", "");
+          // Prefer hamlet_name if available, otherwise use hamlet_number, otherwise use extracted text
+          if (data.hamlet_name) {
+            setDusunNumber(data.hamlet_name);
+          } else if (data.hamlet_number) {
+            setDusunNumber(data.hamlet_number.toString());
+          } else {
+            setDusunNumber(extractedText);
+          }
         } else {
           setSelectedPosition("Other");
           setCustomPosition(position);
@@ -200,8 +215,11 @@ export default function EditOfficialForm() {
 
         const formData = new FormData();
         formData.append('file', fileToUpload);
+        formData.append('upload_type', 'official');
+        formData.append('name', data.name); // Use official name for filename
+        formData.append('position', data.position); // Use position for filename
 
-        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload-with-naming`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -216,6 +234,11 @@ export default function EditOfficialForm() {
 
         const uploadData = await uploadRes.json();
         photo_url = uploadData.url;
+        
+        // Show filename info
+        if (uploadData.filename) {
+          toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+        }
       }
 
       const officialData = { ...data, photo_url };
@@ -286,14 +309,17 @@ export default function EditOfficialForm() {
                   // Will be updated when dusunNumber changes
                   if (dusunNumber) {
                     setValue('position', `Kepala Dusun ${dusunNumber}`);
+                    setValue('hamlet_number', parseInt(dusunNumber));
                   }
                 } else if (value === 'Other') {
                   // Will be updated when customPosition changes
                   if (customPosition) {
                     setValue('position', customPosition);
                   }
+                  setValue('hamlet_number', undefined);
                 } else {
                   setValue('position', value);
+                  setValue('hamlet_number', undefined);
                 }
               }}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.position ? 'border-red-500' : ''}`}
@@ -308,9 +334,11 @@ export default function EditOfficialForm() {
 
           {selectedPosition === 'Kepala Dusun' && (
             <div className="mb-4">
-              <label htmlFor="dusunNumber" className="block text-gray-700 text-sm font-bold mb-2">Nomor Dusun</label>
+              <label htmlFor="dusunNumber" className="block text-gray-700 text-sm font-bold mb-2">
+                Identitas Dusun
+              </label>
               <input
-                type="number"
+                type="text"
                 id="dusunNumber"
                 value={dusunNumber}
                 onChange={(e) => {
@@ -318,10 +346,36 @@ export default function EditOfficialForm() {
                   setDusunNumber(value);
                   if (value) {
                     setValue('position', `Kepala Dusun ${value}`);
+                    // Try to parse as number for hamlet_number (for sorting)
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue > 0) {
+                      setValue('hamlet_number', numValue);
+                      setValue('hamlet_name', undefined);
+                    } else {
+                      // Not a pure number, store as hamlet_name
+                      setValue('hamlet_number', undefined);
+                      setValue('hamlet_name', value);
+                    }
+                  } else {
+                    setValue('hamlet_number', undefined);
+                    setValue('hamlet_name', undefined);
                   }
                 }}
+                placeholder="Contoh: 1, IX-A, Makmur, 3A"
                 className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
               />
+              {dusunNumber && (
+                <p className="text-sm text-green-600 mt-1">
+                  Preview: Dusun {
+                    !isNaN(parseInt(dusunNumber)) && parseInt(dusunNumber) > 0 && parseInt(dusunNumber) <= 100
+                      ? toRomanNumeral(parseInt(dusunNumber))
+                      : dusunNumber
+                  }
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Bisa angka (1, 2, 3...), pemekaran (IX-A, 3B), atau nama (Makmur, Sejahtera)
+              </p>
             </div>
           )}
 
@@ -356,7 +410,7 @@ export default function EditOfficialForm() {
               onChange={handleFileChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
             />
-            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP. Leave empty to keep current photo.</p>
+            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP | Rekomendasi: 400x500px (portrait). Leave empty to keep current photo.</p>
           </div>
 
           {/* Compression Option */}
@@ -466,6 +520,7 @@ export default function EditOfficialForm() {
             />
             {errors.display_order && <p className="text-red-500 text-xs italic">{errors.display_order.message}</p>}
           </div>
+          
           <div className="flex items-center justify-between">
             <button
               type="submit"

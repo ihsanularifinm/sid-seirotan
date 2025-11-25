@@ -9,6 +9,9 @@ import (
 type ContactRepository interface {
 	CreateContact(contact *models.Contact) error
 	GetAllContacts() ([]models.Contact, error)
+	Count() (int64, error)
+	CountUnread() (int64, error)
+	GetRecent(limit int) ([]models.Contact, error)
 }
 
 // GormContactRepository implements ContactRepository using GORM
@@ -30,5 +33,26 @@ func (r *GormContactRepository) CreateContact(contact *models.Contact) error {
 func (r *GormContactRepository) GetAllContacts() ([]models.Contact, error) {
 	var contacts []models.Contact
 	err := r.db.Find(&contacts).Error
+	return contacts, err
+}
+
+// Count returns the total number of contact messages
+func (r *GormContactRepository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.Contact{}).Count(&count).Error
+	return count, err
+}
+
+// CountUnread returns the number of unread contact messages
+// Note: Currently returns 0 as is_read field is not implemented yet
+func (r *GormContactRepository) CountUnread() (int64, error) {
+	// TODO: Implement when is_read field is added to Contact model
+	return 0, nil
+}
+
+// GetRecent returns the most recent contact messages
+func (r *GormContactRepository) GetRecent(limit int) ([]models.Contact, error) {
+	var contacts []models.Contact
+	err := r.db.Order("created_at DESC").Limit(limit).Find(&contacts).Error
 	return contacts, err
 }

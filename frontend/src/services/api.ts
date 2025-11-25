@@ -40,6 +40,8 @@ export type VillageOfficial = {
   name: string;
   position: string;
   photo_url: string;
+  hamlet_number?: number;
+  hamlet_name?: string;
 };
 
 export type NewsApiResponse = {
@@ -165,4 +167,79 @@ export const upsertSetting = async (setting: any) => {
   return response.data;
 };
 
+// Change Password
+export const changePassword = async (data: {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}): Promise<{ message: string }> => {
+  const response = await api.put('/api/v1/admin/profile/change-password', data);
+  return response.data;
+};
+
 export default api;
+
+
+// Dashboard Types
+export interface DashboardStats {
+  content_stats: ContentStats;
+  recent_news: RecentNews[];
+  recent_contacts: RecentContact[];
+  analytics: AnalyticsStats;
+  popular_pages: PopularPage[];
+  system_info?: SystemInfo;
+}
+
+export interface ContentStats {
+  total_news: number;
+  total_officials: number;
+  total_potentials: number;
+  total_services: number;
+  total_contacts: number;
+  unread_contacts: number;
+}
+
+export interface AnalyticsStats {
+  today_views: number;
+  today_visitors: number;
+  week_views: number;
+  week_visitors: number;
+  month_views: number;
+  month_visitors: number;
+}
+
+export interface RecentNews {
+  id: number;
+  title: string;
+  slug: string;
+  image_url?: string;
+  published_at?: string;
+}
+
+export interface RecentContact {
+  id: number;
+  name: string;
+  subject: string;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface PopularPage {
+  page_url: string;
+  page_title: string;
+  view_count: number;
+}
+
+export interface SystemInfo {
+  last_login?: string;
+  current_user: string;
+  current_role: string;
+  app_version: string;
+  database_status: string;
+}
+
+// Dashboard API
+export const getDashboardStats = async (): Promise<DashboardStats> => {
+  const response = await api.get('/api/v1/admin/dashboard/stats');
+  return response.data;
+};

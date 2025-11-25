@@ -6,6 +6,8 @@ export interface OfficialFormData {
   bio: string;
   display_order: number;
   photo_url?: string;
+  hamlet_number?: number | null;
+  hamlet_name?: string | null;
 }
 
 export const schema = yup.object().shape({

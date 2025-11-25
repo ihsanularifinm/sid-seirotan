@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { OfficialFormData, schema } from '@/types/official';
 
@@ -12,6 +12,8 @@ import { positions } from '@/data/positions';
 import { useState, useEffect } from 'react';
 import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 import toast from 'react-hot-toast';
+import FilenamePreview from '@/components/admin/FilenamePreview';
+import { toRomanNumeral } from '@/utils/romanNumerals';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -28,9 +30,15 @@ export default function CreateVillageOfficialPage() {
     formState: { errors },
     reset,
     setValue,
+    control,
   } = useForm<OfficialFormData>({
     resolver: yupResolver(schema),
   });
+  
+  // Watch name and position for filename preview
+  const name = useWatch({ control, name: 'name' });
+  const position = useWatch({ control, name: 'position' });
+  
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -169,8 +177,11 @@ export default function CreateVillageOfficialPage() {
 
         const formData = new FormData();
         formData.append('file', fileToUpload);
+        formData.append('upload_type', 'official');
+        formData.append('name', data.name); // Use official name for filename
+        formData.append('position', data.position); // Use position for filename
 
-        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload-with-naming`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -185,6 +196,11 @@ export default function CreateVillageOfficialPage() {
 
         const uploadData = await uploadRes.json();
         photo_url = uploadData.url;
+        
+        // Show filename info
+        if (uploadData.filename) {
+          toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+        }
       }
 
       const officialData = { ...data, photo_url };
@@ -233,6 +249,7 @@ export default function CreateVillageOfficialPage() {
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.name ? 'border-red-500' : ''}`}
             />
             {errors.name && <p className="text-red-500 text-xs italic">{errors.name.message}</p>}
+            {name && <FilenamePreview filename={name} uploadType="official" additionalInfo={position} />}
           </div>
           <div className="mb-4">
             <label htmlFor="position" className="block text-gray-700 text-sm font-bold mb-2">Jabatan</label>
@@ -248,14 +265,17 @@ export default function CreateVillageOfficialPage() {
                   // Will be updated when dusunNumber changes
                   if (dusunNumber) {
                     setValue('position', `Kepala Dusun ${dusunNumber}`);
+                    setValue('hamlet_number', parseInt(dusunNumber));
                   }
                 } else if (value === 'Other') {
                   // Will be updated when customPosition changes
                   if (customPosition) {
                     setValue('position', customPosition);
                   }
+                  setValue('hamlet_number', undefined);
                 } else {
                   setValue('position', value);
+                  setValue('hamlet_number', undefined);
                 }
               }}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.position ? 'border-red-500' : ''}`}
@@ -270,9 +290,11 @@ export default function CreateVillageOfficialPage() {
 
           {selectedPosition === 'Kepala Dusun' && (
             <div className="mb-4">
-              <label htmlFor="dusunNumber" className="block text-gray-700 text-sm font-bold mb-2">Nomor Dusun</label>
+              <label htmlFor="dusunNumber" className="block text-gray-700 text-sm font-bold mb-2">
+                Identitas Dusun
+              </label>
               <input
-                type="number"
+                type="text"
                 id="dusunNumber"
                 value={dusunNumber}
                 onChange={(e) => {
@@ -280,10 +302,36 @@ export default function CreateVillageOfficialPage() {
                   setDusunNumber(value);
                   if (value) {
                     setValue('position', `Kepala Dusun ${value}`);
+                    // Try to parse as number for hamlet_number (for sorting)
+                    const numValue = parseInt(value);
+                    if (!isNaN(numValue) && numValue > 0) {
+                      setValue('hamlet_number', numValue);
+                      setValue('hamlet_name', undefined);
+                    } else {
+                      // Not a pure number, store as hamlet_name
+                      setValue('hamlet_number', undefined);
+                      setValue('hamlet_name', value);
+                    }
+                  } else {
+                    setValue('hamlet_number', undefined);
+                    setValue('hamlet_name', undefined);
                   }
                 }}
+                placeholder="Contoh: 1, IX-A, Makmur, 3A"
                 className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
               />
+              {dusunNumber && (
+                <p className="text-sm text-green-600 mt-1">
+                  Preview: Dusun {
+                    !isNaN(parseInt(dusunNumber)) && parseInt(dusunNumber) > 0 && parseInt(dusunNumber) <= 100
+                      ? toRomanNumeral(parseInt(dusunNumber))
+                      : dusunNumber
+                  }
+                </p>
+              )}
+              <p className="text-xs text-gray-500 mt-1">
+                Bisa angka (1, 2, 3...), pemekaran (IX-A, 3B), atau nama (Makmur, Sejahtera)
+              </p>
             </div>
           )}
 
@@ -312,7 +360,7 @@ export default function CreateVillageOfficialPage() {
               onChange={handleFileChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
             />
-            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP</p>
+            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP | Rekomendasi: 400x500px (portrait)</p>
           </div>
 
           {/* Compression Option */}
@@ -422,6 +470,7 @@ export default function CreateVillageOfficialPage() {
             />
             {errors.display_order && <p className="text-red-500 text-xs italic">{errors.display_order.message}</p>}
           </div>
+          
           <div className="flex items-center justify-between">
             <button
               type="submit"

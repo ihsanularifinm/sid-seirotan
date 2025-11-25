@@ -33,10 +33,17 @@ func main() {
 	serviceRepo := repositories.NewGormServiceRepository(db)
 	heroSliderRepo := repositories.NewGormHeroSliderRepository(db)
 	siteSettingsRepo := repositories.NewGormSiteSettingsRepository(db)
+	pageViewRepo := repositories.NewPageViewRepository(db)
 
 	// Seed the database with default users if they don't exist
 	userRepo.SeedSuperadmin()
 	userRepo.SeedDefaultAdmin()
+
+	// Get SQL database connection for health checks
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get database connection: %v", err)
+	}
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(userRepo)
@@ -48,6 +55,7 @@ func main() {
 	userHandler := handlers.NewUserHandler(userRepo)
 	heroSliderHandler := handlers.NewHeroSliderHandler(heroSliderRepo)
 	siteSettingsHandler := handlers.NewSiteSettingsHandler(siteSettingsRepo)
+	dashboardHandler := handlers.NewDashboardHandler(newsRepo, villageOfficialRepo, potentialRepo, serviceRepo, contactRepo, pageViewRepo, sqlDB)
 
 	router := gin.Default()
 
@@ -71,8 +79,8 @@ func main() {
 
 	// Setup routes
 	routes.SetupAuthRoutes(authRoutes, authHandler)
-	routes.SetupPublicRoutes(publicRoutes, newsHandler, villageOfficialHandler, potentialHandler, contactHandler, serviceHandler, heroSliderHandler, siteSettingsHandler)
-	routes.SetupAdminRoutes(adminRoutes, userHandler, newsHandler, villageOfficialHandler, serviceHandler, potentialHandler, contactHandler, heroSliderHandler, siteSettingsHandler)
+	routes.SetupPublicRoutes(publicRoutes, newsHandler, villageOfficialHandler, potentialHandler, contactHandler, serviceHandler, heroSliderHandler, siteSettingsHandler, pageViewRepo)
+	routes.SetupAdminRoutes(adminRoutes, userHandler, newsHandler, villageOfficialHandler, serviceHandler, potentialHandler, contactHandler, heroSliderHandler, siteSettingsHandler, dashboardHandler)
 
 	// Run the server
 	port := os.Getenv("PORT")

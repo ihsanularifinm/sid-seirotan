@@ -17,6 +17,8 @@ type NewsRepository interface {
 	UpdateNews(news *models.News) error
 	DeleteNews(id uint64) error
 	IsSlugExist(slug string, currentID uint64) (bool, error)
+	Count() (int64, error)
+	GetRecent(limit int) ([]models.News, error)
 }
 
 // GormNewsRepository implements NewsRepository using GORM
@@ -116,4 +118,22 @@ func (r *GormNewsRepository) IsSlugExist(slug string, currentID uint64) (bool, e
 	}
 
 	return count > 0, nil
+}
+
+// Count returns the total number of news articles
+func (r *GormNewsRepository) Count() (int64, error) {
+	var count int64
+	err := r.db.Model(&models.News{}).Count(&count).Error
+	return count, err
+}
+
+// GetRecent returns the most recent news articles
+func (r *GormNewsRepository) GetRecent(limit int) ([]models.News, error) {
+	var news []models.News
+	err := r.db.Preload("Author").
+		Where("status = ?", models.NewsStatusPublished).
+		Order("published_at DESC").
+		Limit(limit).
+		Find(&news).Error
+	return news, err
 }

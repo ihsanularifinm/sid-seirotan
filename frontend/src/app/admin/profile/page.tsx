@@ -6,8 +6,12 @@ import { getAllSettingsAdmin, bulkUpdateSettings } from '@/services/api';
 import { SiteSetting } from '@/types/settings';
 import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
+import { useRoleProtection } from '@/hooks/useRoleProtection';
 
 export default function AdminProfilePage() {
+  // Protect this page - only admin and superadmin can access
+  const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
+  
   const router = useRouter();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,12 +99,7 @@ export default function AdminProfilePage() {
     return labels[key] || key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
   };
 
-  const getFieldType = (key: string): 'text' | 'textarea' => {
-    if (key === 'village_mission' || key === 'village_history' || key === 'village_vision') {
-      return 'textarea';
-    }
-    return 'text';
-  };
+
 
   const getFieldPlaceholder = (key: string): string => {
     const placeholders: { [key: string]: string } = {
@@ -127,7 +126,7 @@ export default function AdminProfilePage() {
     return 3;
   };
 
-  if (loading) {
+  if (loading || roleLoading) {
     return (
       <AdminLayout>
         <div className="animate-pulse">
@@ -144,14 +143,16 @@ export default function AdminProfilePage() {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800">Profil Desa</h1>
-          <p className="text-gray-600 mt-1">Kelola informasi profil desa yang ditampilkan di halaman Profil</p>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">Profil Desa</h1>
+        <p className="text-gray-600">
+          Kelola informasi profil desa yang akan ditampilkan di halaman publik
+        </p>
       </div>
 
+      {/* Profile Desa Section */}
       <div className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Profil Desa</h2>
         <div className="space-y-6">
           {/* Informasi Dasar */}
           <div className="border-b pb-4">

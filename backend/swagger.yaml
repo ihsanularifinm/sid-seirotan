@@ -173,6 +173,83 @@ paths:
         '400':
           description: Bad request (e.g., missing fields)
 
+  /api/admin/profile/change-password:
+    put:
+      summary: Change admin password
+      description: Allows an authenticated admin to change their own password
+      tags:
+        - Admin Profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - current_password
+                - new_password
+                - confirm_password
+              properties:
+                current_password:
+                  type: string
+                  format: password
+                  description: The admin's current password
+                  example: "oldpassword123"
+                new_password:
+                  type: string
+                  format: password
+                  minLength: 6
+                  description: The new password (minimum 6 characters)
+                  example: "newpassword456"
+                confirm_password:
+                  type: string
+                  format: password
+                  description: Confirmation of the new password (must match new_password)
+                  example: "newpassword456"
+      responses:
+        '200':
+          description: Password changed successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password changed successfully"
+        '400':
+          description: Bad request (validation error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "new password must be at least 6 characters"
+        '401':
+          description: Unauthorized (invalid or missing token)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid or expired token"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Failed to update password"
+
 components:
   securitySchemes:
     bearerAuth:

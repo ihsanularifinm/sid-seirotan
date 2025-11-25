@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useForm, SubmitHandler } from 'react-hook-form';
+import { useForm, SubmitHandler, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/layout/AdminLayout';
@@ -10,6 +10,7 @@ import { useEffect, useState } from 'react';
 import { schema, NewsFormData } from '@/types/news';
 import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 import toast from 'react-hot-toast';
+import FilenamePreview from '@/components/admin/FilenamePreview';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -25,12 +26,16 @@ export default function CreateNewsPage() {
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<NewsFormData>({
     resolver: yupResolver(schema),
     defaultValues: {
       status: 'draft',
     },
   });
+  
+  // Watch title for filename preview
+  const title = useWatch({ control, name: 'title' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -147,8 +152,10 @@ export default function CreateNewsPage() {
 
         const formData = new FormData();
         formData.append('file', fileToUpload);
+        formData.append('upload_type', 'news');
+        formData.append('title', data.title); // Use news title for filename
 
-        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload`, {
+        const uploadRes = await fetch(`${apiUrl}/api/v1/admin/upload-with-naming`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -163,6 +170,11 @@ export default function CreateNewsPage() {
 
         const uploadData = await uploadRes.json();
         featured_image_url = uploadData.url;
+        
+        // Show filename info
+        if (uploadData.filename) {
+          toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+        }
       }
 
       const newsData = {
@@ -217,6 +229,7 @@ export default function CreateNewsPage() {
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.title ? 'border-red-500' : ''}`}
             />
             {errors.title && <p className="text-red-500 text-xs italic">{errors.title.message}</p>}
+            {title && <FilenamePreview filename={title} uploadType="news" />}
           </div>
           <div className="mb-4">
             <label htmlFor="content" className="block text-gray-700 text-sm font-bold mb-2">Isi Berita</label>
@@ -237,7 +250,7 @@ export default function CreateNewsPage() {
               onChange={handleFileChange}
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline`}
             />
-            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP</p>
+            <p className="text-xs text-gray-500 mt-1">Format: JPG, PNG, WebP | Rekomendasi: 800x600px atau 1200x800px</p>
           </div>
 
           {/* Compression Option */}

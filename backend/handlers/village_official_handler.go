@@ -17,20 +17,24 @@ type VillageOfficialHandler struct {
 
 // CreateVillageOfficialInput defines the input for creating a village official
 type CreateVillageOfficialInput struct {
-	Name        string `json:"name" binding:"required"`
-	Position    string `json:"position" binding:"required"`
-	PhotoURL    string `json:"photo_url"`
-	Bio         string `json:"bio"`
-	DisplayOrder int    `json:"display_order"`
+	Name         string  `json:"name" binding:"required"`
+	Position     string  `json:"position" binding:"required"`
+	PhotoURL     string  `json:"photo_url"`
+	Bio          string  `json:"bio"`
+	DisplayOrder int     `json:"display_order"`
+	HamletNumber *int    `json:"hamlet_number"`
+	HamletName   *string `json:"hamlet_name"`
 }
 
 // UpdateVillageOfficialInput defines the input for updating a village official
 type UpdateVillageOfficialInput struct {
-	Name        string `json:"name"`
-	Position    string `json:"position"`
-	PhotoURL    string `json:"photo_url"`
-	Bio         string `json:"bio"`
-	DisplayOrder int    `json:"display_order"`
+	Name         string  `json:"name"`
+	Position     string  `json:"position"`
+	PhotoURL     string  `json:"photo_url"`
+	Bio          string  `json:"bio"`
+	DisplayOrder int     `json:"display_order"`
+	HamletNumber *int    `json:"hamlet_number"`
+	HamletName   *string `json:"hamlet_name"`
 }
 
 // NewVillageOfficialHandler creates a new VillageOfficialHandler
@@ -46,12 +50,22 @@ func (h *VillageOfficialHandler) CreateVillageOfficial(c *gin.Context) {
 		return
 	}
 
+	// Validate hamlet_number if provided
+	if input.HamletNumber != nil {
+		if *input.HamletNumber < 1 || *input.HamletNumber > 20 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "hamlet_number must be between 1 and 20"})
+			return
+		}
+	}
+
 	official := models.VillageOfficial{
-		Name:        input.Name,
-		Position:    input.Position,
-		PhotoURL:    &input.PhotoURL,
-		Bio:         &input.Bio,
+		Name:         input.Name,
+		Position:     input.Position,
+		PhotoURL:     &input.PhotoURL,
+		Bio:          &input.Bio,
 		DisplayOrder: input.DisplayOrder,
+		HamletNumber: input.HamletNumber,
+		HamletName:   input.HamletName,
 	}
 
 	if err := h.Repo.CreateVillageOfficial(&official); err != nil {
@@ -106,6 +120,14 @@ func (h *VillageOfficialHandler) UpdateVillageOfficial(c *gin.Context) {
 		return
 	}
 
+	// Validate hamlet_number if provided
+	if input.HamletNumber != nil {
+		if *input.HamletNumber < 1 || *input.HamletNumber > 20 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "hamlet_number must be between 1 and 20"})
+			return
+		}
+	}
+
 	existingOfficial, err := h.Repo.GetVillageOfficialByID(id)
 	if err != nil {
 		utils.RespondError(c, http.StatusNotFound, "Village official not found", err)
@@ -127,6 +149,9 @@ func (h *VillageOfficialHandler) UpdateVillageOfficial(c *gin.Context) {
 	if input.DisplayOrder != 0 {
 		existingOfficial.DisplayOrder = input.DisplayOrder
 	}
+	// Update hamlet_number and hamlet_name (can be set to null by sending null in JSON)
+	existingOfficial.HamletNumber = input.HamletNumber
+	existingOfficial.HamletName = input.HamletName
 
 	if err := h.Repo.UpdateVillageOfficial(existingOfficial); err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, "Failed to update village official", err)

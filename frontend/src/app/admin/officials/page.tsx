@@ -5,16 +5,24 @@ import AdminLayout from '@/components/layout/AdminLayout';
 import Link from 'next/link';
 import { Edit, Trash2, PlusCircle } from 'lucide-react';
 import Cookies from 'js-cookie';
+import StrukturOrganisasiUpload from '@/components/admin/StrukturOrganisasiUpload';
+import { toRomanNumeral } from '@/utils/romanNumerals';
+import { useRoleProtection } from '@/hooks/useRoleProtection';
 
 type VillageOfficial = {
   id: number;
   name: string;
   position: string;
   display_order: number;
+  hamlet_number?: number;
+  hamlet_name?: string;
   created_at: string;
 };
 
 export default function AdminVillageOfficialsPage() {
+  // Protect this page - only admin and superadmin can access
+  const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
+  
   const [officials, setOfficials] = useState<VillageOfficial[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,11 +100,39 @@ export default function AdminVillageOfficialsPage() {
     }
   };
 
+  // Show loading while checking role
+  if (roleLoading) {
+    return (
+      <AdminLayout>
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="space-y-4">
+            <div className="h-20 bg-gray-200 rounded"></div>
+            <div className="h-20 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
   return (
     <AdminLayout>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          Manajemen Pemerintahan Desa
+        </h1>
+        <p className="text-gray-600">
+          Kelola data aparatur desa dan struktur organisasi pemerintahan
+        </p>
+      </div>
+
+      {/* Aparatur Desa Section */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Manajemen Aparatur Desa</h1>
-        <Link href="/admin/officials/create" className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+        <h2 className="text-2xl font-bold text-gray-800">Daftar Aparatur Desa</h2>
+        <Link
+          href="/admin/officials/create"
+          className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+        >
           <PlusCircle size={20} className="mr-2" />
           Tambah Aparatur Baru
         </Link>
@@ -118,6 +154,7 @@ export default function AdminVillageOfficialsPage() {
               <tr>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jabatan</th>
+                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dusun</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Urutan Tampil</th>
                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dibuat Pada</th>
                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
@@ -129,6 +166,14 @@ export default function AdminVillageOfficialsPage() {
                   <tr key={item.id}>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{item.name}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.position}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {item.hamlet_name 
+                        ? `Dusun ${item.hamlet_name}` 
+                        : item.hamlet_number 
+                          ? `Dusun ${toRomanNumeral(item.hamlet_number)}` 
+                          : '-'
+                      }
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{item.display_order}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(item.created_at).toLocaleDateString()}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -145,13 +190,18 @@ export default function AdminVillageOfficialsPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="text-center py-4">No village officials found.</td>
+                  <td colSpan={6} className="text-center py-4">No village officials found.</td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Struktur Organisasi Section */}
+      <div className="mt-8">
+        <StrukturOrganisasiUpload />
+      </div>
     </AdminLayout>
   );
 }

@@ -18,6 +18,7 @@ type UserRepository interface {
 	GetAllUsers(requestingRole models.UserRole) ([]models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id uint64) error
+	ChangePassword(userID uint64, currentPassword string, newPassword string) error
 	SeedSuperadmin()
 	SeedDefaultAdmin()
 }
@@ -35,15 +36,11 @@ func NewGormUserRepository(db *gorm.DB) UserRepository {
 // CreateUser creates a new user in the database after hashing the password
 func (r *GormUserRepository) CreateUser(user *models.User) error {
 	// Expects a raw password in user.PasswordHash and hashes it.
-	log.Printf("DEBUG: Raw password received in CreateUser for user '%s': %s", user.Username, user.PasswordHash)
-
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
 	if err != nil {
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 	user.PasswordHash = string(hashedPassword)
-
-	log.Printf("DEBUG: Hashed password generated for user '%s': %s", user.Username, user.PasswordHash)
 
 	return r.db.Create(user).Error
 }
@@ -135,6 +132,35 @@ func (r *GormUserRepository) SeedSuperadmin() {
 	} else {
 		log.Println("User 'superadmin' already exists.")
 	}
+}
+
+// ChangePassword changes a user's password after verifying the current password
+func (r *GormUserRepository) ChangePassword(userID uint64, currentPassword string, newPassword string) error {
+	// Retrieve user by ID
+	user, err := r.GetUserByID(userID)
+	if err != nil {
+		return fmt.Errorf("user not found: %w", err)
+	}
+
+	// Verify current password
+	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(currentPassword))
+	if err != nil {
+		return fmt.Errorf("current password is incorrect")
+	}
+
+	// Hash new password
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("failed to hash new password: %w", err)
+	}
+
+	// Update only the password_hash field
+	err = r.db.Model(&models.User{}).Where("id = ?", userID).Update("password_hash", string(hashedPassword)).Error
+	if err != nil {
+		return fmt.Errorf("failed to update password: %w", err)
+	}
+
+	return nil
 }
 
 // SeedDefaultAdmin checks and creates a default admin user if one does not exist

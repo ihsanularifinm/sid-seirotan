@@ -169,14 +169,23 @@ export default function CreateHeroSliderForm() {
       
       const uploadData = await uploadWithProgress(
         fileToUpload,
-        `${apiUrl}/api/v1/admin/upload`,
+        `${apiUrl}/api/v1/admin/upload-with-naming`,
         token,
         (percentage) => {
           setUploadProgress(percentage);
+        },
+        {
+          upload_type: 'hero_slider',
+          title: formData.title, // Use slider title for filename
         }
       );
 
       const media_url = uploadData.url;
+      
+      // Show filename info
+      if (uploadData.filename) {
+        toast.success(`File disimpan sebagai: ${uploadData.filename}`, { duration: 3000 });
+      }
       
       // Create slider
       setUploadStep('processing');
