@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
 import LogoUpload from '@/components/admin/LogoUpload';
 import { useRoleProtection } from '@/hooks/useRoleProtection';
+import { useSettings } from '@/contexts/SettingsContext';
 
 type SettingGroup = 'general' | 'social';
 
@@ -16,11 +17,35 @@ interface GroupedSettings {
   social: SiteSetting[];
 }
 
+const FIELD_ORDER = {
+  general: [
+    'site_logo',
+    'site_name',
+    'site_description',
+    'district',
+    'regency',
+    'contact_address',
+    'google_maps_link',
+    'map_embed_url',
+    'contact_email',
+    'contact_phone',
+    'contact_whatsapp',
+  ],
+  social: [
+    'facebook_url',
+    'instagram_url',
+    'twitter_url',
+    'youtube_url',
+    'tiktok_url',
+  ],
+};
+
 export default function AdminSettingsPage() {
   // Protect this page - only admin and superadmin can access
   const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
   
   const router = useRouter();
+  const { invalidateCache, refetch } = useSettings();
   const [activeTab, setActiveTab] = useState<SettingGroup>('general');
   const [settings, setSettings] = useState<GroupedSettings>({
     general: [],
@@ -40,9 +65,21 @@ export default function AdminSettingsPage() {
       
       // Backend returns grouped data: { general: [...], social: [...] }
       // Profile settings are now in separate page
+      // Sort settings based on defined order and filter out those not in order list (hidden fields)
+      const sortAndFilterSettings = (settings: SiteSetting[], order: string[]) => {
+        // First filter to only include settings that are in the order list
+        const filtered = settings.filter(s => order.includes(s.setting_key));
+        
+        return filtered.sort((a, b) => {
+          const indexA = order.indexOf(a.setting_key);
+          const indexB = order.indexOf(b.setting_key);
+          return indexA - indexB;
+        });
+      };
+
       const grouped: GroupedSettings = {
-        general: data.general || [],
-        social: data.social || [],
+        general: sortAndFilterSettings(data.general || [], FIELD_ORDER.general),
+        social: sortAndFilterSettings(data.social || [], FIELD_ORDER.social),
       };
 
       setSettings(grouped);
@@ -90,6 +127,11 @@ export default function AdminSettingsPage() {
 
       await bulkUpdateSettings(updates);
       toast.success('Settings saved successfully');
+      
+      // Invalidate cache and refetch to show changes immediately
+      invalidateCache();
+      await refetch();
+      
       fetchSettings();
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -104,6 +146,24 @@ export default function AdminSettingsPage() {
   };
 
   const getFieldLabel = (key: string): string => {
+    // Custom labels for specific fields
+    const customLabels: { [key: string]: string } = {
+      site_logo: 'Logo Website',
+      site_name: 'Nama Website / Nama Desa',
+      district: 'Kecamatan',
+      regency: 'Kabupaten',
+      site_description: 'Deskripsi Website Desa / Profil Singkat Desa',
+      contact_email: 'Email Kontak',
+      contact_phone: 'Nomor Telepon',
+      contact_whatsapp: 'WhatsApp',
+      contact_address: 'Alamat',
+      google_maps_link: 'Link Google Maps',
+    };
+
+    if (customLabels[key]) {
+      return customLabels[key];
+    }
+
     return key
       .replace(/_/g, ' ')
       .split(' ')
@@ -181,11 +241,11 @@ export default function AdminSettingsPage() {
                 <div key={setting.id} className="border-b pb-6">
                   <LogoUpload
                     currentLogo={formData[setting.setting_key]}
-                    onUploadSuccess={(url) => {
+                    onUploadSuccess={async (url) => {
                       handleInputChange(setting.setting_key, url);
                       // Auto-save logo after upload
-                      setTimeout(() => {
-                        handleSave();
+                      setTimeout(async () => {
+                        await handleSave();
                       }, 500);
                     }}
                   />
@@ -194,6 +254,7 @@ export default function AdminSettingsPage() {
             }
 
             const fieldType = getFieldType(setting.setting_key);
+            const isSyncedField = ['site_name', 'district', 'regency', 'contact_address'].includes(setting.setting_key);
             
             return (
               <div key={setting.id}>
@@ -208,13 +269,21 @@ export default function AdminSettingsPage() {
                     placeholder={`Enter ${getFieldLabel(setting.setting_key).toLowerCase()}`}
                   />
                 ) : (
-                  <input
-                    type={fieldType}
-                    value={formData[setting.setting_key] || ''}
-                    onChange={(e) => handleInputChange(setting.setting_key, e.target.value)}
-                    className="w-full border rounded px-3 py-2"
-                    placeholder={`Enter ${getFieldLabel(setting.setting_key).toLowerCase()}`}
-                  />
+                  <div className="relative">
+                    <input
+                      type={fieldType}
+                      value={formData[setting.setting_key] || ''}
+                      onChange={(e) => handleInputChange(setting.setting_key, e.target.value)}
+                      className={`w-full border rounded px-3 py-2 ${isSyncedField ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                      placeholder={`Enter ${getFieldLabel(setting.setting_key).toLowerCase()}`}
+                      disabled={isSyncedField}
+                    />
+                    {isSyncedField && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        🔒 Diambil otomatis dari Profil Desa
+                      </p>
+                    )}
+                  </div>
                 )}
                 {setting.setting_key.includes('mission') && (
                   <p className="text-xs text-gray-500 mt-1">

@@ -2,36 +2,9 @@ import { Metadata } from "next";
 
 export const dynamic = 'force-dynamic';
 
-export const metadata: Metadata = {
-  title: "Desa Sei Rotan - Website Resmi Pemerintah Desa Sei Rotan",
-  description: "Website resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara. Informasi layanan administrasi, berita terkini, potensi desa, dan struktur pemerintahan desa.",
-  keywords: ["Desa Sei Rotan", "Seirotan", "Percut Sei Tuan", "Deli Serdang", "Sumatera Utara", "Pemerintah Desa", "Layanan Desa", "Berita Desa", "Potensi Desa", "Aparatur Desa"],
-  openGraph: {
-    title: "Desa Sei Rotan - Website Resmi Pemerintah Desa",
-    description: "Website resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara. Informasi layanan, berita, potensi, dan pemerintahan desa.",
-    url: "https://seirotan.desa.id",
-    siteName: "Desa Sei Rotan",
-    locale: "id_ID",
-    type: "website",
-    images: [
-      {
-        url: "https://seirotan.desa.id/assets/img/hero-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Desa Sei Rotan - Percut Sei Tuan, Deli Serdang",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Desa Sei Rotan - Website Resmi Pemerintah Desa",
-    description: "Website resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara.",
-    images: ["https://seirotan.desa.id/assets/img/hero-image.jpg"],
-  },
-  alternates: {
-    canonical: "https://seirotan.desa.id",
-  },
-};
+// Note: This metadata should be generated dynamically from settings
+// For now using generic placeholders - will be replaced by dynamic metadata in layout.tsx
+// Note: Metadata is generated dynamically in layout.tsx
 
 import Image from "next/image";
 import Link from "next/link";
@@ -49,63 +22,8 @@ export default async function Home() {
   const kepalaDesa = allOfficials.find(o => o.position.includes("Kepala Desa"));
   const sekretarisDesa = allOfficials.find(o => o.position === "Sekretaris Desa");
 
-  // Enhanced JSON-LD with Local Business and Government Organization
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'WebSite',
-        '@id': 'https://seirotan.desa.id/#website',
-        url: 'https://seirotan.desa.id',
-        name: 'Website Resmi Desa Sei Rotan',
-        description: 'Website resmi Pemerintah Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara',
-        inLanguage: 'id-ID',
-        potentialAction: {
-          '@type': 'SearchAction',
-          target: 'https://seirotan.desa.id/search?q={search_term_string}',
-          'query-input': 'required name=search_term_string',
-        },
-      },
-      {
-        '@type': 'GovernmentOrganization',
-        '@id': 'https://seirotan.desa.id/#organization',
-        name: 'Pemerintah Desa Sei Rotan',
-        alternateName: 'Desa Seirotan',
-        url: 'https://seirotan.desa.id',
-        logo: 'https://seirotan.desa.id/assets/img/logo-deli-serdang.png',
-        description: 'Pemerintah Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara',
-        address: {
-          '@type': 'PostalAddress',
-          addressLocality: 'Percut Sei Tuan',
-          addressRegion: 'Sumatera Utara',
-          addressCountry: 'ID',
-        },
-        areaServed: {
-          '@type': 'Place',
-          name: 'Desa Sei Rotan',
-        },
-      },
-      {
-        '@type': 'BreadcrumbList',
-        '@id': 'https://seirotan.desa.id/#breadcrumb',
-        itemListElement: [
-          {
-            '@type': 'ListItem',
-            position: 1,
-            name: 'Beranda',
-            item: 'https://seirotan.desa.id',
-          },
-        ],
-      },
-    ],
-  };
-
   return (
     <main>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
       {/* Hero Slider Section */}
       <HeroSlider />
 

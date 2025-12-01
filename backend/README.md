@@ -1,6 +1,6 @@
-# Backend - Website Desa Sei Rotan
+# Backend - Website Desa
 
-Backend ini dibangun menggunakan Go dengan framework Gin.
+Backend ini dibangun menggunakan Go dengan framework Gin untuk website desa yang dapat dikustomisasi.
 
 ## Teknologi
 

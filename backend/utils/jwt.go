@@ -12,12 +12,13 @@ import (
 type Claims struct {
 	UserID   uint64 `json:"user_id"`
 	Username string `json:"username"`
+	FullName string `json:"full_name"`
 	Role     string `json:"role"`
 	jwt.RegisteredClaims
 }
 
 // GenerateToken generates a new JWT token for a given user
-func GenerateToken(userID uint64, username string, role string) (string, error) {
+func GenerateToken(userID uint64, username string, fullName string, role string) (string, error) {
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", fmt.Errorf("JWT_SECRET environment variable not set")
@@ -27,6 +28,7 @@ func GenerateToken(userID uint64, username string, role string) (string, error) 
 	claims := &Claims{
 		UserID:   userID,
 		Username: username,
+		FullName: fullName,
 		Role:     role,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),

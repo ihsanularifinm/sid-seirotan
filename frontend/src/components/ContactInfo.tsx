@@ -9,10 +9,10 @@ interface ContactInfoProps {
 }
 
 const CONTACT_PLACEHOLDERS = {
-  address: 'Alamat belum tersedia',
-  phone: 'Telepon belum tersedia',
-  whatsapp: 'WhatsApp belum tersedia',
-  email: 'Email belum tersedia',
+  address: '-',
+  phone: '-',
+  whatsapp: '-',
+  email: '-',
 };
 
 export default function ContactInfo({ 
@@ -20,30 +20,39 @@ export default function ContactInfo({
   showTitle = true, 
   className = '' 
 }: ContactInfoProps) {
+  const phone = settings?.general?.contact_phone;
+  const whatsapp = settings?.general?.contact_whatsapp;
+  const email = settings?.general?.contact_email;
+  const address = settings?.general?.contact_address;
+
   const contactItems = [
     {
       icon: FaMapMarkerAlt,
-      value: settings?.general?.contact_address || CONTACT_PLACEHOLDERS.address,
-      className: 'flex items-start',
-      iconClassName: 'w-5 mr-2 mt-0.5 flex-shrink-0',
+      value: address || CONTACT_PLACEHOLDERS.address,
+      href: settings?.general?.google_maps_link || null,
+      className: 'flex items-center',
+      iconClassName: 'w-5 mr-3 flex-shrink-0',
     },
     {
       icon: FaPhone,
-      value: settings?.general?.contact_phone || CONTACT_PLACEHOLDERS.phone,
+      value: phone || CONTACT_PLACEHOLDERS.phone,
+      href: phone ? `tel:${phone.replace(/\s/g, '')}` : null,
       className: 'flex items-center',
-      iconClassName: 'w-5 mr-2',
+      iconClassName: 'w-5 mr-3 flex-shrink-0',
     },
     {
       icon: FaWhatsapp,
-      value: settings?.general?.contact_whatsapp || CONTACT_PLACEHOLDERS.whatsapp,
+      value: whatsapp || CONTACT_PLACEHOLDERS.whatsapp,
+      href: whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null,
       className: 'flex items-center',
-      iconClassName: 'w-5 mr-2',
+      iconClassName: 'w-5 mr-3 flex-shrink-0',
     },
     {
       icon: FaEnvelope,
-      value: settings?.general?.contact_email || CONTACT_PLACEHOLDERS.email,
+      value: email || CONTACT_PLACEHOLDERS.email,
+      href: email ? `mailto:${email}` : null,
       className: 'flex items-center',
-      iconClassName: 'w-5 mr-2',
+      iconClassName: 'w-5 mr-3 flex-shrink-0',
     },
   ];
 
@@ -55,10 +64,31 @@ export default function ContactInfo({
       <address className="text-sm not-italic space-y-3">
         {contactItems.map((item, index) => {
           const Icon = item.icon;
-          return (
-            <p key={index} className={item.className}>
+          const content = (
+            <>
               <Icon className={item.iconClassName} />
               <span>{item.value}</span>
+            </>
+          );
+
+          if (item.href) {
+            return (
+              <p key={index}>
+                <a 
+                  href={item.href}
+                  className={`${item.className} hover:text-blue-300 transition-colors`}
+                  target={item.icon === FaWhatsapp ? '_blank' : undefined}
+                  rel={item.icon === FaWhatsapp ? 'noopener noreferrer' : undefined}
+                >
+                  {content}
+                </a>
+              </p>
+            );
+          }
+
+          return (
+            <p key={index} className={item.className}>
+              {content}
             </p>
           );
         })}

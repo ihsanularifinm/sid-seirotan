@@ -1,22 +1,46 @@
 import { Metadata } from "next";
+import Image from 'next/image';
+import Link from 'next/link';
+import DOMPurify from 'isomorphic-dompurify';
+import { getMediaUrl } from '@/lib/mediaUrl';
+import { getNewsBySlug, News } from "../../../services/api";
+import { fetchSettingsForMetadata } from '@/lib/metadata';
 
 export const dynamic = 'force-dynamic';
 
-import DOMPurify from 'isomorphic-dompurify';
-import { getMediaUrl } from '@/lib/mediaUrl';
+async function getSettings() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const res = await fetch(`${apiUrl}/api/v1/settings`, {
+      cache: 'no-store',
+    });
+    
+    if (!res.ok) {
+      return null;
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+    return null;
+  }
+}
 
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const awaitedParams = await params;
   const news: News = await getNewsDetail(awaitedParams.slug);
+  const settings = await fetchSettingsForMetadata();
+  const siteName = settings?.general?.site_name || 'Website Desa';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id';
   const plainContent = news.content.replace(/<[^>]*>?/gm, ''); // Simple way to strip HTML tags for description
 
   return {
-    title: `${news.title} - Berita Desa Sei Rotan`,
+    title: `${news.title} | ${siteName}`,
     description: plainContent.substring(0, 160),
     openGraph: {
       title: news.title,
       description: plainContent.substring(0, 160),
-      url: `https://seirotan.desa.id/berita/${news.slug}`,
+      url: `${siteUrl}/berita/${news.slug}`,
       type: 'article',
       publishedTime: new Date(news.created_at).toISOString(),
       images: [
@@ -31,11 +55,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-import Image from 'next/image';
-import Link from 'next/link';
-
-import { getNewsBySlug, News } from "../../../services/api";
-
 async function getNewsDetail(slug: string) {
   return getNewsBySlug(slug);
 }
@@ -43,28 +62,32 @@ async function getNewsDetail(slug: string) {
 export default async function DetailBeritaPage({ params }: { params: { slug: string } }) {
   const awaitedParams = await params;
   const news: News = await getNewsDetail(awaitedParams.slug);
+  const settings = await getSettings();
+  const siteName = settings?.general?.site_name || 'Website Desa';
+  const siteLogo = settings?.general?.site_logo || '/assets/img/logo-deli-serdang.png';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id';
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
     mainEntityOfPage: {
       '@type': 'WebPage',
-      '@id': `https://seirotan.desa.id/berita/${news.slug}`,
+      '@id': `${siteUrl}/berita/${news.slug}`,
     },
     headline: news.title,
     image: getMediaUrl(news.featured_image_url),
     datePublished: new Date(news.created_at).toISOString(),
     author: {
       '@type': 'Organization',
-      name: 'Pemerintah Desa Sei Rotan',
-      url: 'https://seirotan.desa.id',
+      name: `Pemerintah ${siteName}`,
+      url: siteUrl,
     },
     publisher: {
       '@type': 'Organization',
-      name: 'Pemerintah Desa Sei Rotan',
+      name: `Pemerintah ${siteName}`,
       logo: {
         '@type': 'ImageObject',
-        url: 'https://seirotan.desa.id/assets/img/logo-deli-serdang.png',
+        url: siteLogo.startsWith('http') ? siteLogo : `${siteUrl}/uploads/${siteLogo}`,
       },
     },
     description: news.content.replace(/<[^>]*>?/gm, '').substring(0, 160),

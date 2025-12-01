@@ -52,7 +52,9 @@ export default function AdminVillageOfficialsPage() {
       }
 
       const data = await res.json();
-      setOfficials(data || []);
+      // Sort by display_order
+      const sortedData = (data || []).sort((a: VillageOfficial, b: VillageOfficial) => a.display_order - b.display_order);
+      setOfficials(sortedData);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

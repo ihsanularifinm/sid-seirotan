@@ -13,7 +13,7 @@ import { useState, useEffect } from 'react';
 import { compressImage, formatFileSize, calculateSavings } from '@/utils/imageCompression';
 import toast from 'react-hot-toast';
 import FilenamePreview from '@/components/admin/FilenamePreview';
-import { toRomanNumeral } from '@/utils/romanNumerals';
+import { toRomanNumeral, formatDusunName } from '@/utils/romanNumerals';
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -32,7 +32,7 @@ export default function CreateVillageOfficialPage() {
     setValue,
     control,
   } = useForm<OfficialFormData>({
-    resolver: yupResolver(schema),
+    resolver: yupResolver(schema) as any,
   });
   
   // Watch name and position for filename preview
@@ -73,16 +73,20 @@ export default function CreateVillageOfficialPage() {
   }, [officials, setValue]);
 
   useEffect(() => {
-    // Cleanup the object URL when the component unmounts or a new file is selected
     return () => {
       if (imagePreviewUrl) {
         URL.revokeObjectURL(imagePreviewUrl);
       }
+    };
+  }, [imagePreviewUrl]);
+
+  useEffect(() => {
+    return () => {
       if (compressedPreviewUrl) {
         URL.revokeObjectURL(compressedPreviewUrl);
       }
     };
-  }, [imagePreviewUrl, compressedPreviewUrl]);
+  }, [compressedPreviewUrl]);
 
   const performCompression = async (file: File) => {
     setCompressing(true);
@@ -301,16 +305,18 @@ export default function CreateVillageOfficialPage() {
                   const value = e.target.value;
                   setDusunNumber(value);
                   if (value) {
-                    setValue('position', `Kepala Dusun ${value}`);
+                    const formatted = formatDusunName(value);
+                    setValue('position', `Kepala Dusun ${formatted}`);
+                    
                     // Try to parse as number for hamlet_number (for sorting)
                     const numValue = parseInt(value);
-                    if (!isNaN(numValue) && numValue > 0) {
+                    if (!isNaN(numValue) && numValue > 0 && value.match(/^\d+$/)) {
                       setValue('hamlet_number', numValue);
                       setValue('hamlet_name', undefined);
                     } else {
                       // Not a pure number, store as hamlet_name
                       setValue('hamlet_number', undefined);
-                      setValue('hamlet_name', value);
+                      setValue('hamlet_name', formatted);
                     }
                   } else {
                     setValue('hamlet_number', undefined);
@@ -322,11 +328,7 @@ export default function CreateVillageOfficialPage() {
               />
               {dusunNumber && (
                 <p className="text-sm text-green-600 mt-1">
-                  Preview: Dusun {
-                    !isNaN(parseInt(dusunNumber)) && parseInt(dusunNumber) > 0 && parseInt(dusunNumber) <= 100
-                      ? toRomanNumeral(parseInt(dusunNumber))
-                      : dusunNumber
-                  }
+                  Preview: Dusun {formatDusunName(dusunNumber)}
                 </p>
               )}
               <p className="text-xs text-gray-500 mt-1">
@@ -395,20 +397,18 @@ export default function CreateVillageOfficialPage() {
           )}
 
           {/* Before/After Preview */}
-          {showCompressionPreview && compressedFile && uploadedFile && (
+          {showCompressionPreview && compressedFile && uploadedFile && imagePreviewUrl && compressedPreviewUrl && (
             <div className="mb-4 bg-gray-50 border rounded-lg p-4">
               <h4 className="font-medium mb-3">Preview Compression:</h4>
               <div className="grid grid-cols-2 gap-4">
                 {/* Original */}
                 <div>
                   <p className="text-sm font-medium mb-2">Original</p>
-                  <div className="border rounded overflow-hidden">
-                    <Image
-                      src={imagePreviewUrl || ''}
+                  <div className="border rounded overflow-hidden bg-gray-100 flex items-center justify-center" style={{ minHeight: '250px' }}>
+                    <img
+                      src={imagePreviewUrl}
                       alt="Original"
-                      width={200}
-                      height={150}
-                      className="w-full h-32 object-cover"
+                      className="max-w-full max-h-[400px] w-auto h-auto object-contain"
                     />
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
@@ -419,13 +419,11 @@ export default function CreateVillageOfficialPage() {
                 {/* Compressed */}
                 <div>
                   <p className="text-sm font-medium mb-2">Compressed</p>
-                  <div className="border rounded overflow-hidden">
-                    <Image
-                      src={compressedPreviewUrl || ''}
+                  <div className="border rounded overflow-hidden bg-gray-100 flex items-center justify-center" style={{ minHeight: '250px' }}>
+                    <img
+                      src={compressedPreviewUrl}
                       alt="Compressed"
-                      width={200}
-                      height={150}
-                      className="w-full h-32 object-cover"
+                      className="max-w-full max-h-[400px] w-auto h-auto object-contain"
                     />
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
@@ -451,13 +449,17 @@ export default function CreateVillageOfficialPage() {
             </div>
           )}
           <div className="mb-4">
-            <label htmlFor="bio" className="block text-gray-700 text-sm font-bold mb-2">Bio</label>
+            <label htmlFor="bio" className="block text-gray-700 text-sm font-bold mb-2">
+              Bio <span className="text-gray-500 font-normal">(Opsional)</span>
+            </label>
             <textarea
               id="bio"
               {...register('bio')}
               rows={5}
+              placeholder="Tambahkan bio singkat aparatur (pendidikan, pengalaman, dll)"
               className={`shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline ${errors.bio ? 'border-red-500' : ''}`}
             ></textarea>
+            <p className="text-xs text-gray-500 mt-1">Bio akan ditampilkan saat pengunjung mengklik foto aparatur</p>
             {errors.bio && <p className="text-red-500 text-xs italic">{errors.bio.message}</p>}
           </div>
           <div className="mb-6">

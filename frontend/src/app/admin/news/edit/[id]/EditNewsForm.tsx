@@ -55,17 +55,27 @@ export default function EditNewsForm() {
   const [enableCompression, setEnableCompression] = useState(true);
   const [showCompressionPreview, setShowCompressionPreview] = useState(false);
 
+  // Handle original image preview
   useEffect(() => {
-    // Cleanup the object URL when the component unmounts or a new file is selected
-    return () => {
-      if (newImagePreviewUrl) {
-        URL.revokeObjectURL(newImagePreviewUrl);
-      }
-      if (compressedPreviewUrl) {
-        URL.revokeObjectURL(compressedPreviewUrl);
-      }
-    };
-  }, [newImagePreviewUrl, compressedPreviewUrl]);
+    if (!uploadedFile) {
+      setNewImagePreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(uploadedFile);
+    setNewImagePreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [uploadedFile]);
+
+  // Handle compressed image preview
+  useEffect(() => {
+    if (!compressedFile) {
+      setCompressedPreviewUrl(null);
+      return;
+    }
+    const objectUrl = URL.createObjectURL(compressedFile);
+    setCompressedPreviewUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [compressedFile]);
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -98,7 +108,6 @@ export default function EditNewsForm() {
     try {
       const compressed = await compressImage(file);
       setCompressedFile(compressed);
-      setCompressedPreviewUrl(URL.createObjectURL(compressed));
       setShowCompressionPreview(true);
       
       const savings = calculateSavings(file.size, compressed.size);
@@ -124,7 +133,6 @@ export default function EditNewsForm() {
       await performCompression(uploadedFile);
     } else if (!enabled) {
       setCompressedFile(null);
-      setCompressedPreviewUrl(null);
       setShowCompressionPreview(false);
     }
   };
@@ -136,7 +144,6 @@ export default function EditNewsForm() {
     setUploadedFile(file);
     setCompressedFile(null);
     setShowCompressionPreview(false);
-    setNewImagePreviewUrl(URL.createObjectURL(file));
 
     // Show warning for large files
     if (file.size > FILE_SIZE_LIMITS.WARNING_THRESHOLD) {
@@ -281,7 +288,17 @@ export default function EditNewsForm() {
             {existingImageUrl && !newImagePreviewUrl && (
               <div className="mb-2">
                 <p className="text-sm text-gray-600 mb-1">Current Image:</p>
-                <Image src={getMediaUrl(existingImageUrl)} alt="Existing Featured Image" width={128} height={128} className="w-32 h-32 object-cover rounded-md" />
+                <div className="w-32 h-32 border rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={getMediaUrl(existingImageUrl)}
+                    alt="Existing Featured Image"
+                    className="max-w-full max-h-full object-contain"
+                    onError={(e) => {
+                      console.error('Failed to load image:', getMediaUrl(existingImageUrl));
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
               </div>
             )}
             <input
@@ -329,20 +346,20 @@ export default function EditNewsForm() {
           {showCompressionPreview && compressedFile && uploadedFile && (
             <div className="mb-4 bg-gray-50 border rounded-lg p-4">
               <h4 className="font-medium mb-3">Preview Compression:</h4>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Original */}
                 <div>
                   <p className="text-sm font-medium mb-2">Original</p>
-                  <div className="border rounded overflow-hidden">
-                    <Image
-                      src={newImagePreviewUrl || ''}
-                      alt="Original"
-                      width={200}
-                      height={150}
-                      className="w-full h-32 object-cover"
-                    />
+                  <div className="border rounded overflow-hidden bg-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
+                    {newImagePreviewUrl && (
+                      <img
+                        src={newImagePreviewUrl}
+                        alt="Original"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-2">
                     Size: {formatFileSize(uploadedFile.size)}
                   </p>
                 </div>
@@ -350,16 +367,16 @@ export default function EditNewsForm() {
                 {/* Compressed */}
                 <div>
                   <p className="text-sm font-medium mb-2">Compressed</p>
-                  <div className="border rounded overflow-hidden">
-                    <Image
-                      src={compressedPreviewUrl || ''}
-                      alt="Compressed"
-                      width={200}
-                      height={150}
-                      className="w-full h-32 object-cover"
-                    />
+                  <div className="border rounded overflow-hidden bg-gray-100 flex items-center justify-center" style={{ height: '400px' }}>
+                    {compressedPreviewUrl && (
+                      <img
+                        src={compressedPreviewUrl}
+                        alt="Compressed"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-2">
                     Size: {formatFileSize(compressedFile.size)}
                   </p>
                   <p className="text-sm text-green-600 font-medium">

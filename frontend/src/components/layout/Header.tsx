@@ -30,6 +30,24 @@ export default function Header() {
       : 'block py-3 px-4 text-sm text-gray-700 hover:bg-gray-100';
   };
 
+  // Generate dynamic description with district and regency
+  const getDescription = () => {
+    const district = settings?.general?.district;
+    const regency = settings?.general?.regency;
+    
+    if (district && regency) {
+      return `Kec. ${district}, Kab. ${regency}`;
+    } else if (district) {
+      return `Kec. ${district}`;
+    } else if (regency) {
+      return `Kab. ${regency}`;
+    } else if (settings?.general?.site_description) {
+      return settings.general.site_description;
+    }
+    
+    return 'Website resmi pemerintah desa';
+  };
+
   return (
     <header className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -44,10 +62,10 @@ export default function Header() {
             />
             <div>
               <span className="block font-bold text-base sm:text-lg text-gray-800">
-                {settings?.general?.site_name || 'DESA SEI ROTAN'}
+                {settings?.general?.site_name || 'Website Desa'}
               </span>
               <span className="block text-xs text-gray-500">
-                {settings?.general?.site_description || 'KEC. PERCUT SEI TUAN, KAB. DELI SERDANG'}
+                {getDescription()}
               </span>
             </div>
           </Link>

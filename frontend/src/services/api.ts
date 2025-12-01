@@ -42,6 +42,9 @@ export type VillageOfficial = {
   photo_url: string;
   hamlet_number?: number;
   hamlet_name?: string;
+  hamlet_id?: string;
+  bio?: string;
+  display_order: number;
 };
 
 export type NewsApiResponse = {

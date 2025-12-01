@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/ihsanularifinm/sid-seirotan/backend/config"
 	"github.com/ihsanularifinm/sid-seirotan/backend/models"
 	"github.com/ihsanularifinm/sid-seirotan/backend/repositories"
 	"github.com/ihsanularifinm/sid-seirotan/backend/utils"
@@ -40,6 +42,34 @@ type UpdateVillageOfficialInput struct {
 // NewVillageOfficialHandler creates a new VillageOfficialHandler
 func NewVillageOfficialHandler(repo repositories.VillageOfficialRepository) *VillageOfficialHandler {
 	return &VillageOfficialHandler{Repo: repo}
+}
+
+// EnsureVillageOfficialsExist checks if at least one official exists and creates defaults if needed
+func (h *VillageOfficialHandler) EnsureVillageOfficialsExist() error {
+	// Check if any officials exist
+	officials, err := h.Repo.GetAllVillageOfficials()
+	if err != nil {
+		log.Printf("Error fetching village officials: %v", err)
+		return err
+	}
+
+	// If no officials, create defaults
+	if len(officials) == 0 {
+		log.Println("No village officials found, creating default officials")
+		defaultOfficials := config.GetDefaultOfficials()
+		
+		for _, official := range defaultOfficials {
+			if err := h.Repo.CreateVillageOfficial(&official); err != nil {
+				log.Printf("Error creating default official: %v", err)
+				return err
+			}
+		}
+		log.Printf("Successfully created %d default village officials", len(defaultOfficials))
+	} else {
+		log.Printf("Found %d village official(s), no initialization needed", len(officials))
+	}
+
+	return nil
 }
 
 // CreateVillageOfficial creates a new village official
@@ -96,6 +126,13 @@ func (h *VillageOfficialHandler) GetVillageOfficialByID(c *gin.Context) {
 
 // GetAllVillageOfficials retrieves all village officials
 func (h *VillageOfficialHandler) GetAllVillageOfficials(c *gin.Context) {
+	// Auto-initialize if needed
+	if err := h.EnsureVillageOfficialsExist(); err != nil {
+		log.Printf("Failed to initialize village officials: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize village officials"})
+		return
+	}
+
 	officials, err := h.Repo.GetAllVillageOfficials()
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, "Failed to retrieve village officials", err)

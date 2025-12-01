@@ -1,37 +1,54 @@
 import { Metadata } from "next";
+import Image from 'next/image';
+import { getPotentials, Potential } from "../../services/api";
+import { fetchSettingsForMetadata, generateMetadata as createMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: "Potensi Desa Sei Rotan - Pertanian, Perkebunan, Peternakan, dan UMKM",
-  description: "Jelajahi berbagai potensi yang dimiliki Desa Sei Rotan, mulai dari sektor pertanian, perkebunan, peternakan, hingga UMKM yang berkembang.",
-  openGraph: {
-    title: "Potensi Unggulan Desa Sei Rotan",
-    description: "Jelajahi berbagai potensi yang dimiliki Desa Sei Rotan, mulai dari sektor pertanian, perkebunan, peternakan, hingga UMKM yang berkembang.",
-    url: "https://seirotan.desa.id/potensi",
-    images: [
-      {
-        url: "https://seirotan.desa.id/assets/img/potensi-pertanian.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Potensi Pertanian Desa Sei Rotan",
-      },
-    ],
-  },
-};
+/**
+ * Generate dynamic metadata for potensi page
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSettingsForMetadata();
+  const siteName = settings?.general?.site_name || 'Website Desa';
+  
+  return createMetadata(settings, {
+    pageTitle: 'Potensi Desa',
+    pageDescription: `Jelajahi berbagai potensi yang dimiliki ${siteName}, mulai dari sektor pertanian, perkebunan, peternakan, hingga UMKM yang berkembang.`,
+    pageUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id'}/potensi`,
+    imageUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id'}/assets/img/potensi-pertanian.jpg`,
+  });
+}
 
 export const dynamic = 'force-dynamic';
 
-import Image from 'next/image';
-
-import { getPotentials, Potential } from "../../services/api";
+async function getSettings() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const res = await fetch(`${apiUrl}/api/v1/settings`, {
+      cache: 'no-store',
+    });
+    
+    if (!res.ok) {
+      return null;
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+    return null;
+  }
+}
 
 export default async function Potensi() {
   const potentials: Potential[] = await getPotentials();
+  const settings = await getSettings();
+  const siteName = settings?.general?.site_name || 'Website Desa';
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id';
 
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
-    name: 'Potensi Desa Sei Rotan',
-    description: 'Berbagai potensi yang dimiliki Desa Sei Rotan, mulai dari sektor pertanian, perkebunan, peternakan, hingga UMKM.',
+    name: `Potensi ${siteName}`,
+    description: `Berbagai potensi yang dimiliki ${siteName}, mulai dari sektor pertanian, perkebunan, peternakan, hingga UMKM.`,
     itemListElement: potentials.map((potential, index) => ({
       '@type': 'ListItem',
       position: index + 1,
@@ -39,7 +56,7 @@ export default async function Potensi() {
         '@type': 'Thing',
         name: potential.title,
         description: potential.description,
-        image: potential.cover_image_url || 'https://seirotan.desa.id/assets/img/placeholder.png',
+        image: potential.cover_image_url || `${siteUrl}/assets/img/placeholder.png`,
       },
     })),
   };
@@ -50,7 +67,7 @@ export default async function Potensi() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Potensi Desa Sei Rotan</h1>
+      <h1 className="text-3xl font-bold text-center text-gray-800 mb-12">Potensi {siteName}</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {potentials.map((potential) => (
           <div key={potential.id} className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col md:flex-row items-center">

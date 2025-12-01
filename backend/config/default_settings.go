@@ -13,7 +13,7 @@ var DefaultSettings = []SettingSchema{
 	// General Settings (7 items)
 	{
 		Key:          "site_name",
-		DefaultValue: "[Nama Website Desa]",
+		DefaultValue: "[Nama Desa]",
 		Group:        "general",
 		Description:  "Nama website yang ditampilkan di header dan title",
 	},
@@ -25,9 +25,9 @@ var DefaultSettings = []SettingSchema{
 	},
 	{
 		Key:          "site_logo",
-		DefaultValue: "https://placehold.co/200x200/2563eb/ffffff?text=Logo+%7C+200x200px&font=montserrat",
+		DefaultValue: "https://placehold.co/400x400/2563eb/ffffff?text=Logo+%7C+400x400px&font=montserrat",
 		Group:        "general",
-		Description:  "Logo website (PNG atau SVG, ukuran rekomendasi: 200x200px atau 400x400px)",
+		Description:  "Logo website (PNG atau SVG, ukuran rekomendasi: 400x400px)",
 	},
 	{
 		Key:          "contact_email",
@@ -52,6 +52,30 @@ var DefaultSettings = []SettingSchema{
 		DefaultValue: "[Alamat lengkap kantor desa]",
 		Group:        "general",
 		Description:  "Alamat lengkap kantor desa",
+	},
+	{
+		Key:          "map_embed_url",
+		DefaultValue: "",
+		Group:        "general",
+		Description:  "URL embed Google Maps (paste src dari iframe Google Maps)",
+	},
+	{
+		Key:          "google_maps_link",
+		DefaultValue: "https://maps.google.com",
+		Group:        "general",
+		Description:  "Link Google Maps untuk tombol petunjuk arah",
+	},
+	{
+		Key:          "district",
+		DefaultValue: "",
+		Group:        "general",
+		Description:  "Kecamatan untuk ditampilkan di header",
+	},
+	{
+		Key:          "regency",
+		DefaultValue: "",
+		Group:        "general",
+		Description:  "Kabupaten untuk ditampilkan di header",
 	},
 
 	// Profile Settings (11 items)
@@ -81,9 +105,9 @@ var DefaultSettings = []SettingSchema{
 	},
 	{
 		Key:          "village_history",
-		DefaultValue: "[Sejarah singkat desa dari masa ke masa]",
+		DefaultValue: "[Sejarah desa dari masa ke masa]",
 		Group:        "profile",
-		Description:  "Sejarah lengkap desa",
+		Description:  "Sejarah desa",
 	},
 	{
 		Key:          "village_area",

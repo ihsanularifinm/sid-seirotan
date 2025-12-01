@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -55,7 +54,7 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// Generate JWT token including the user's role
-	token, err := utils.GenerateToken(user.ID, user.Username, string(user.Role))
+	token, err := utils.GenerateToken(user.ID, user.Username, user.FullName, string(user.Role))
 	if err != nil {
 		utils.RespondError(c, http.StatusInternalServerError, "Failed to generate token", err)
 		return

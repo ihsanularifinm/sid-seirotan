@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { transformSettings } from '@/utils/settingsAdapter';
 
 /**
  * Site Settings Interface
@@ -15,6 +16,10 @@ export interface SiteSettings {
     contact_phone: string;
     contact_whatsapp: string;
     contact_address: string;
+    map_embed_url: string;
+    google_maps_link: string;
+    district: string;
+    regency: string;
   };
   social: {
     facebook_url?: string;
@@ -41,6 +46,10 @@ const DEFAULT_SETTINGS: SiteSettings = {
     contact_phone: '',
     contact_whatsapp: '',
     contact_address: '',
+    map_embed_url: '',
+    google_maps_link: '',
+    district: '',
+    regency: '',
   },
   social: {},
   government: {},
@@ -51,6 +60,7 @@ interface SettingsContextValue {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  invalidateCache: () => void;
 }
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
@@ -69,6 +79,20 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Invalidate cache and clear localStorage
+   * Should be called after settings are updated in admin panel
+   */
+  const invalidateCache = () => {
+    try {
+      localStorage.removeItem('site_settings');
+      localStorage.removeItem('site_settings_timestamp');
+      console.log('Settings cache invalidated');
+    } catch (e) {
+      console.warn('Failed to invalidate cache:', e);
+    }
+  };
+
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -84,12 +108,14 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
       }
 
       const data = await response.json();
-      setSettings(data);
+      const transformedData = transformSettings(data);
+      setSettings(transformedData);
 
-      // Cache settings in localStorage
+      // Cache settings in localStorage with version
       try {
-        localStorage.setItem('site_settings', JSON.stringify(data));
+        localStorage.setItem('site_settings', JSON.stringify(transformedData));
         localStorage.setItem('site_settings_timestamp', Date.now().toString());
+        localStorage.setItem('site_settings_version', '2'); // Increment this to invalidate old cache
       } catch (e) {
         console.warn('Failed to cache settings:', e);
       }
@@ -120,6 +146,16 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     try {
       const cached = localStorage.getItem('site_settings');
       const timestamp = localStorage.getItem('site_settings_timestamp');
+      const version = localStorage.getItem('site_settings_version');
+      const CURRENT_VERSION = '2'; // Must match version in fetchSettings
+      
+      // Invalidate cache if version mismatch
+      if (version !== CURRENT_VERSION) {
+        console.log('Cache version mismatch, fetching fresh data');
+        invalidateCache();
+        fetchSettings();
+        return;
+      }
       
       if (cached && timestamp) {
         const age = Date.now() - parseInt(timestamp);
@@ -145,6 +181,7 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
     loading,
     error,
     refetch: fetchSettings,
+    invalidateCache,
   };
 
   return (

@@ -1,6 +1,6 @@
-# Website Desa Sei Rotan
+# Website Desa
 
-Ini adalah proyek website untuk Desa Sei Rotan, yang dibangun dengan Go untuk backend dan Next.js untuk frontend.
+Ini adalah proyek website untuk desa, yang dibangun dengan Go untuk backend dan Next.js untuk frontend. Website ini dapat dikustomisasi untuk desa manapun melalui admin panel.
 
 ## Fitur
 
@@ -60,27 +60,10 @@ Cara termudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
     **Catatan:** 
     - Backend akan otomatis menjalankan migrasi database saat pertama kali start
     - User superadmin akan dibuat otomatis dengan username `superadmin`
+    - Default data (hero slider, settings, village officials) akan dibuat otomatis saat pertama kali diakses
     - Tunggu hingga semua services ready (sekitar 30-60 detik)
 
-4.  **Load Seed Data (Opsional):**
-    Untuk mengisi database dengan data contoh (hero sliders dan site settings):
-    ```bash
-    cat backend/db/seeds/seed_hero_sliders_and_settings.sql | docker exec -i sid-seirotan-db-1 psql -U admin -d sid_sei_rotan_db
-    ```
-    
-    Atau jika menggunakan Docker Compose:
-    ```bash
-    docker compose exec db psql -U admin -d sid_sei_rotan_db -f /path/to/seed_hero_sliders_and_settings.sql
-    ```
-    
-    Seed data mencakup:
-    - 3 hero sliders untuk homepage
-    - Site settings lengkap (general, profile, social)
-    - Data profil desa yang siap digunakan
-    
-    Lihat dokumentasi lengkap di `backend/db/seeds/README.md`
-
-5.  **Akses Aplikasi:**
+4.  **Akses Aplikasi:**
     -   **Frontend:** [http://localhost:3000](http://localhost:3000)
     -   **Backend API:** [http://localhost:8080](http://localhost:8080)
     -   **Database:** Port `5432`
@@ -88,7 +71,7 @@ Cara termudah untuk menjalankan aplikasi adalah menggunakan Docker Compose.
         - Username: `superadmin`
         - Password: Sesuai `SUPERADMIN_DEFAULT_PASSWORD` di `.env`
 
-6.  **Troubleshooting:**
+5.  **Troubleshooting:**
     Jika ada masalah, lihat [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## Instalasi Manual

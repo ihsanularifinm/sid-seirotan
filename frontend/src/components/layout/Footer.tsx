@@ -27,7 +27,7 @@ export default function Footer() {
           <SocialMediaLinks settings={settings} showTitle={true} />
         </div>
         <div className="border-t border-gray-700 mt-10 pt-6 text-center text-gray-500 text-sm">
-          <p>&copy; {currentYear} {settings?.general?.site_name || 'Pemerintah Desa'}</p>
+          <p>&copy; {currentYear} {settings?.general?.site_name || 'Website Desa'}</p>
         </div>
       </div>
     </footer>

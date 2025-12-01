@@ -21,3 +21,29 @@ export function toRomanNumeral(num: number): string {
   
   return result;
 }
+
+/**
+ * Formats dusun name input to Roman numeral format
+ * Handles "3" -> "III"
+ * Handles "3B" -> "III-B"
+ * Handles "3 B" -> "III-B"
+ * Returns original string if no number found at start
+ */
+export function formatDusunName(input: string): string {
+  if (!input) return "";
+  
+  // Match number at start, optional space, then letters
+  const match = input.match(/^(\d+)\s*([a-zA-Z]*)$/);
+  
+  if (match) {
+    const num = parseInt(match[1]);
+    const suffix = match[2];
+    
+    if (num > 0 && num <= 100) {
+      const roman = toRomanNumeral(num);
+      return suffix ? `${roman}-${suffix.toUpperCase()}` : roman;
+    }
+  }
+  
+  return input;
+}

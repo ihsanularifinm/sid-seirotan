@@ -1,6 +1,6 @@
-# Frontend - Website Desa Sei Rotan
+# Frontend - Website Desa
 
-Frontend ini dibangun menggunakan Next.js, sebuah framework React.
+Frontend ini dibangun menggunakan Next.js, sebuah framework React untuk website desa yang dapat dikustomisasi.
 
 ## Teknologi
 

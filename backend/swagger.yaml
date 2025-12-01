@@ -1,8 +1,8 @@
 openapi: 3.0.0
 info:
-  title: SID Sei Rotan API
+  title: SID API
   version: 1.0.0
-  description: API for Sistem Informasi Desa Sei Rotan
+  description: API for Sistem Informasi Desa
 servers:
   - url: http://localhost:8080
     description: Development server

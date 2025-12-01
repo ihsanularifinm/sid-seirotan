@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { getAllSettingsAdmin, bulkUpdateSettings } from '@/services/api';
+import { getAllSettingsAdmin, bulkUpdateSettings, getOfficials } from '@/services/api';
 import { SiteSetting } from '@/types/settings';
 import toast from 'react-hot-toast';
 import AdminLayout from '@/components/layout/AdminLayout';
 import { useRoleProtection } from '@/hooks/useRoleProtection';
+import { useSettings } from '@/contexts/SettingsContext';
 
 export default function AdminProfilePage() {
   // Protect this page - only admin and superadmin can access
   const { loading: roleLoading } = useRoleProtection(['admin', 'superadmin']);
+  const { invalidateCache } = useSettings();
   
   const router = useRouter();
   const [settings, setSettings] = useState<SiteSetting[]>([]);
@@ -19,15 +21,18 @@ export default function AdminProfilePage() {
   const [formData, setFormData] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    fetchSettings();
+    fetchData();
   }, []);
 
-  const fetchSettings = async () => {
+  const fetchData = async () => {
     try {
-      const data = await getAllSettingsAdmin();
+      const [settingsData, officialsData] = await Promise.all([
+        getAllSettingsAdmin(),
+        getOfficials()
+      ]);
       
       // Get only profile group settings
-      const profileSettings = data.profile || [];
+      const profileSettings = settingsData.profile || [];
       setSettings(profileSettings);
 
       // Initialize form data
@@ -35,6 +40,15 @@ export default function AdminProfilePage() {
       profileSettings.forEach((setting: SiteSetting) => {
         initialFormData[setting.setting_key] = setting.setting_value || '';
       });
+
+      // Override village_head with data from officials if available
+      const headOfficial = officialsData.find(o => 
+        o.position.toLowerCase().includes('kepala desa')
+      );
+      if (headOfficial) {
+        initialFormData['village_head'] = headOfficial.name;
+      }
+
       setFormData(initialFormData);
 
       setLoading(false);
@@ -67,8 +81,12 @@ export default function AdminProfilePage() {
       }));
 
       await bulkUpdateSettings(updates);
+      
+      // Invalidate settings cache to update navbar/footer immediately
+      invalidateCache();
+      
       toast.success('Profile settings saved successfully');
-      fetchSettings();
+      fetchData();
     } catch (error: any) {
       if (error.response?.status === 401) {
         toast.error('Session expired. Please login again.');
@@ -103,18 +121,18 @@ export default function AdminProfilePage() {
 
   const getFieldPlaceholder = (key: string): string => {
     const placeholders: { [key: string]: string } = {
-      village_name: 'Contoh: Desa Seirotan',
+      village_name: 'Contoh: Desa Makmur',
       village_head: 'Contoh: Bapak Kepala Desa',
       village_vision: 'Masukkan visi desa...',
       village_mission: 'Masukkan misi desa (pisahkan dengan enter untuk numbered list)...',
       village_history: 'Masukkan sejarah desa...',
       village_area: 'Contoh: 450 hektar',
       village_population: 'Contoh: 3.250 jiwa',
-      village_address: 'Contoh: Jl. Raya Seirotan',
-      village_district: 'Contoh: Percut Sei Tuan',
-      village_regency: 'Contoh: Deli Serdang',
-      village_province: 'Contoh: Sumatera Utara',
-      village_postal_code: 'Contoh: 20371',
+      village_address: 'Contoh: Jl. Raya Desa',
+      village_district: 'Contoh: Kecamatan',
+      village_regency: 'Contoh: Kabupaten',
+      village_province: 'Contoh: Provinsi',
+      village_postal_code: 'Contoh: 12345',
     };
     return placeholders[key] || `Masukkan ${getFieldLabel(key).toLowerCase()}...`;
   };
@@ -158,9 +176,14 @@ export default function AdminProfilePage() {
           <div className="border-b pb-4">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Informasi Dasar</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {settings
-                .filter((s) => ['village_name', 'village_head', 'village_area', 'village_population'].includes(s.setting_key))
-                .map((setting) => (
+              {/* Define explicit order: Name, Head, Area, Population */}
+              {['village_name', 'village_head', 'village_area', 'village_population'].map(key => {
+                const setting = settings.find(s => s.setting_key === key);
+                if (!setting) return null;
+                
+                const isReadOnly = key === 'village_head';
+                
+                return (
                   <div key={setting.id}>
                     <label className="block text-sm font-medium mb-1">
                       {getFieldLabel(setting.setting_key)}
@@ -169,11 +192,18 @@ export default function AdminProfilePage() {
                       type="text"
                       value={formData[setting.setting_key] || ''}
                       onChange={(e) => handleInputChange(setting.setting_key, e.target.value)}
-                      className="w-full border rounded px-3 py-2"
+                      className={`w-full border rounded px-3 py-2 ${isReadOnly ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                       placeholder={getFieldPlaceholder(setting.setting_key)}
+                      disabled={isReadOnly}
                     />
+                    {isReadOnly && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        🔒 Diambil otomatis dari data Aparatur Desa
+                      </p>
+                    )}
                   </div>
-                ))}
+                );
+              })}
             </div>
           </div>
 

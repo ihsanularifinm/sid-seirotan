@@ -4,46 +4,30 @@ import "./globals.css";
 import MainLayout from "@/components/layout/MainLayout";
 import { Toaster } from "react-hot-toast";
 import { SettingsProvider } from "@/contexts/SettingsContext";
+import { fetchSettingsForMetadata, generateRootMetadata } from "@/lib/metadata";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  metadataBase: new URL('https://seirotan.desa.id'),
-  title: {
-    template: "%s | Desa Sei Rotan",
-    default: "Desa Sei Rotan - Website Resmi Pemerintah Desa",
-  },
-  description: "Website Resmi Desa Sei Rotan, Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Sumatera Utara. Informasi layanan, berita, potensi, dan pemerintahan desa.",
-  keywords: ["Desa Sei Rotan", "Seirotan", "Percut Sei Tuan", "Deli Serdang", "Sumatera Utara", "Pemerintah Desa", "Layanan Desa", "Berita Desa"],
-  authors: [{ name: "Pemerintah Desa Sei Rotan" }],
-  creator: "Pemerintah Desa Sei Rotan",
-  publisher: "Pemerintah Desa Sei Rotan",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
+/**
+ * Generate dynamic metadata based on site settings
+ * Fetches settings server-side to populate title, description, and other metadata
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSettingsForMetadata();
+  const metadata = generateRootMetadata(settings);
+  
+  // Add verification if needed
+  return {
+    ...metadata,
+    verification: {
+      google: "your-google-verification-code", // Replace with actual Google Search Console verification code
     },
-  },
-  icons: {
-    icon: "/assets/img/logo-deli-serdang.png",
-    apple: "/assets/img/logo-deli-serdang.png",
-  },
-  verification: {
-    google: "your-google-verification-code", // Ganti dengan kode verifikasi Google Search Console
-  },
-};
+  };
+}
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="id">
-      <head>
-        <link rel="canonical" href="https://seirotan.desa.id" />
-      </head>
       <body className={inter.className}>
         <SettingsProvider>
           <MainLayout>{children}</MainLayout>

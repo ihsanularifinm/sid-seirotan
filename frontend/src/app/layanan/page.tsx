@@ -1,29 +1,46 @@
 import { Metadata } from "next";
+import { getServices, Service } from "../../services/api";
+import { fetchSettingsForMetadata, generateMetadata as createMetadata } from '@/lib/metadata';
 
-export const metadata: Metadata = {
-  title: "Layanan Administrasi Desa Sei Rotan",
-  description: "Informasi lengkap mengenai layanan administrasi yang tersedia di Desa Sei Rotan, termasuk persyaratan dan prosedur.",
-  openGraph: {
-    title: "Layanan Administrasi Desa Sei Rotan",
-    description: "Informasi lengkap mengenai layanan administrasi yang tersedia di Desa Sei Rotan.",
-    url: "https://seirotan.desa.id/layanan",
-    images: [
-      {
-        url: "https://seirotan.desa.id/assets/img/hero-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Layanan Desa Sei Rotan",
-      },
-    ],
-  },
-};
+/**
+ * Generate dynamic metadata for layanan page
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await fetchSettingsForMetadata();
+  const siteName = settings?.general?.site_name || 'Website Desa';
+  
+  return createMetadata(settings, {
+    pageTitle: 'Layanan Administrasi Desa',
+    pageDescription: `Informasi lengkap mengenai layanan administrasi yang tersedia di ${siteName}, termasuk persyaratan dan prosedur.`,
+    pageUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id'}/layanan`,
+    imageUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://seirotan.desa.id'}/assets/img/hero-image.jpg`,
+  });
+}
 
 export const dynamic = 'force-dynamic';
 
-import { getServices, Service } from "../../services/api";
+async function getSettings() {
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+    const res = await fetch(`${apiUrl}/api/v1/settings`, {
+      cache: 'no-store',
+    });
+    
+    if (!res.ok) {
+      return null;
+    }
+    
+    return await res.json();
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+    return null;
+  }
+}
 
 export default async function LayananPage() {
   const services: Service[] = await getServices();
+  const settings = await getSettings();
+  const siteName = settings?.general?.site_name || 'Website Desa';
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -37,7 +54,7 @@ export default async function LayananPage() {
         description: service.description,
         provider: {
           '@type': 'GovernmentOrganization',
-          name: 'Pemerintah Desa Sei Rotan',
+          name: `Pemerintah ${siteName}`,
         },
       },
     })),

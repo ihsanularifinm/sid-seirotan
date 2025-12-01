@@ -1,28 +1,42 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getSettingsByGroup } from '@/services/api';
+import { getSettingsByGroup, getOfficials } from '@/services/api';
 import { SettingsMap } from '@/types/settings';
 
 export default function VillageProfile() {
   const [profile, setProfile] = useState<SettingsMap>({});
+  const [villageHeadName, setVillageHeadName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchData = async () => {
       try {
-        const data = await getSettingsByGroup('profile');
-        setProfile(data);
+        const [profileData, officialsData] = await Promise.all([
+          getSettingsByGroup('profile'),
+          getOfficials()
+        ]);
+        
+        setProfile(profileData);
+
+        // Find village head from officials
+        const headOfficial = officialsData.find(o => 
+          o.position.toLowerCase().includes('kepala desa')
+        );
+        if (headOfficial) {
+          setVillageHeadName(headOfficial.name);
+        }
+
         setLoading(false);
       } catch (err) {
-        console.error('Failed to fetch village profile:', err);
+        console.error('Failed to fetch village profile data:', err);
         setError('Failed to load village profile');
         setLoading(false);
       }
     };
 
-    fetchProfile();
+    fetchData();
   }, []);
 
   if (loading) {
@@ -51,17 +65,18 @@ export default function VillageProfile() {
   }
 
   // Fallback values if settings not found
-  const villageName = profile.village_name || 'Sei Rotan';
-  const villageHead = profile.village_head || 'Kepala Desa';
-  const villageVision = profile.village_vision || 'Mewujudkan Desa yang Maju, Mandiri, Sejahtera, dan Berbudaya';
-  const villageMission = profile.village_mission || '1. Meningkatkan kualitas SDM\n2. Mengembangkan perekonomian desa\n3. Meningkatkan tata kelola pemerintahan';
-  const villageHistory = profile.village_history || 'Desa Sei Rotan adalah salah satu desa di Kecamatan Percut Sei Tuan, Kabupaten Deli Serdang, Provinsi Sumatera Utara.';
+  const villageName = profile.village_name || '-';
+  // Use dynamic village head name if found, otherwise fallback to settings
+  const villageHead = villageHeadName || profile.village_head || '-';
+  const villageVision = profile.village_vision || 'Visi';
+  const villageMission = profile.village_mission || '1. Misi 1\n2. Misi 2\n3. Misi 3';
+  const villageHistory = profile.village_history || 'Sejarah';
   const villageArea = profile.village_area || '-';
   const villagePopulation = profile.village_population || '-';
   const villageAddress = profile.village_address || '-';
-  const villageDistrict = profile.village_district || 'Percut Sei Tuan';
-  const villageRegency = profile.village_regency || 'Deli Serdang';
-  const villageProvince = profile.village_province || 'Sumatera Utara';
+  const villageDistrict = profile.village_district || '-';
+  const villageRegency = profile.village_regency || '-';
+  const villageProvince = profile.village_province || '-';
 
   // Parse mission (split by newline or numbered list)
   const missionItems = villageMission
@@ -78,49 +93,64 @@ export default function VillageProfile() {
       {/* Data Umum Desa */}
       <section className="mb-16 bg-blue-50 p-8 rounded-lg">
         <h2 className="text-2xl font-semibold text-gray-700 mb-6">Data Umum Desa</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Nama Desa:</span> {villageName}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Kepala Desa:</span> {villageHead}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Kecamatan:</span> {villageDistrict}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Kabupaten:</span> {villageRegency}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Provinsi:</span> {villageProvince}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Luas Wilayah:</span> {villageArea}
-            </p>
-          </div>
-          <div>
-            <p className="text-gray-600">
-              <span className="font-semibold">Jumlah Penduduk:</span> {villagePopulation}
-            </p>
-          </div>
-          {villageAddress !== '-' && (
-            <div className="md:col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Left Column: Identity & Location */}
+          <div className="space-y-4">
+            <div>
               <p className="text-gray-600">
-                <span className="font-semibold">Alamat:</span> {villageAddress}
+                <span className="font-semibold block text-gray-800">Nama Desa:</span>
+                {villageName}
               </p>
             </div>
-          )}
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Kecamatan:</span>
+                {villageDistrict}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Kabupaten:</span>
+                {villageRegency}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Provinsi:</span>
+                {villageProvince}
+              </p>
+            </div>
+            {villageAddress !== '-' && (
+              <div>
+                <p className="text-gray-600">
+                  <span className="font-semibold block text-gray-800">Alamat:</span>
+                  {villageAddress}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Right Column: Leadership & Demographics */}
+          <div className="space-y-4">
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Kepala Desa:</span>
+                {villageHead}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Jumlah Penduduk:</span>
+                {villagePopulation}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-600">
+                <span className="font-semibold block text-gray-800">Luas Wilayah:</span>
+                {villageArea}
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 

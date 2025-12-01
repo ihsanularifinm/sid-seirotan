@@ -1,4 +1,4 @@
-# robots.txt for Desa Sei Rotan
+# robots.txt for Website Desa
 # https://seirotan.desa.id
 
 User-agent: *

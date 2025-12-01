@@ -138,7 +138,7 @@ export default function LogoUpload({ currentLogo, onUploadSuccess }: LogoUploadP
             <span>ℹ️</span>
             <div>
               <p><strong>Format:</strong> PNG atau SVG</p>
-              <p><strong>Ukuran rekomendasi:</strong> 200x200px atau 400x400px (square)</p>
+              <p><strong>Ukuran rekomendasi:</strong> 400x400px (square)</p>
               <p><strong>Maksimal:</strong> 5MB</p>
               <p className="mt-1 text-amber-600">
                 <strong>Catatan:</strong> Logo tidak akan dikompres untuk menjaga kualitas

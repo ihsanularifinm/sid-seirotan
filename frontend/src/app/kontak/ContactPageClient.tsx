@@ -3,6 +3,8 @@
 import { useSettings } from '@/contexts/SettingsContext';
 import ContactInfo from '@/components/ContactInfo';
 import SocialMediaLinks from '@/components/SocialMediaLinks';
+import ContactForm from '@/components/ContactForm';
+import ContactMap from '@/components/ContactMap';
 import Link from 'next/link';
 import { FaHome, FaChevronRight } from 'react-icons/fa';
 
@@ -11,69 +13,72 @@ export default function ContactPageClient() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Breadcrumb */}
-      <div className="bg-white border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center text-sm text-gray-600">
-            <Link href="/" className="hover:text-blue-600 flex items-center">
-              <FaHome className="mr-1" />
-              Beranda
-            </Link>
-            <FaChevronRight className="mx-2 text-xs" />
-            <span className="text-gray-900 font-medium">Kontak</span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Page Content */}
       <div className="container mx-auto px-4 py-12">
-        {/* Page Title */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Hubungi Kami</h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Jangan ragu untuk menghubungi kami jika Anda memiliki pertanyaan atau membutuhkan informasi lebih lanjut
+        {/* Main Contact Section */}
+        <div className="bg-white p-8 rounded-lg shadow-md mb-12">
+          <h1 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">Hubungi Kami</h1>
+          <p className="text-gray-600 mb-10 text-center max-w-2xl mx-auto">
+            Kami siap melayani Anda. Silakan hubungi kami melalui informasi di bawah ini atau kirimkan pesan melalui formulir.
           </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Left Column: Contact Info, Office Hours, Social Media */}
+            <div className="space-y-8">
+              {/* Contact Information */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-3">Informasi Kontak</h2>
+                <ContactInfo 
+                  settings={settings} 
+                  showTitle={false} 
+                  className="text-gray-700"
+                />
+              </div>
+
+              {/* Office Hours */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-3">Jam Operasional Kantor</h2>
+                <div className="space-y-2 text-gray-700">
+                  <p>Senin - Kamis: 08:00 - 16:00 WIB</p>
+                  <p>Jumat: 08:00 - 15:00 WIB</p>
+                  <p>Sabtu & Minggu: Tutup</p>
+                </div>
+              </div>
+
+              {/* Social Media */}
+              <div>
+                <h2 className="text-xl font-semibold text-gray-800 mb-3">Media Sosial</h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Ikuti kami di media sosial untuk mendapatkan informasi terbaru
+                </p>
+                <SocialMediaLinks 
+                  settings={settings} 
+                  showTitle={false} 
+                  iconSize="text-2xl"
+                  className="text-gray-700"
+                />
+              </div>
+            </div>
+
+            {/* Right Column: Contact Form */}
+            <div>
+              <ContactForm />
+            </div>
+          </div>
         </div>
 
-        {/* Contact Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Contact Info Card */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <ContactInfo 
-              settings={settings} 
-              showTitle={true} 
-              className="text-gray-700"
+        {/* Map Section */}
+        <div className="mt-12">
+          <h2 className="text-2xl font-bold text-gray-800 text-center mb-6">Lokasi Kami di Peta</h2>
+          <div className="rounded-lg shadow-md overflow-hidden">
+            <ContactMap 
+              address={settings?.general?.contact_address || ''}
+              mapEmbedUrl={settings?.general?.map_embed_url || ''}
+              googleMapsLink={settings?.general?.google_maps_link || ''}
+              villageName={settings?.general?.site_name || 'Kantor Desa'}
             />
-          </div>
-
-          {/* Social Media Card */}
-          <div className="bg-white rounded-lg shadow-md p-8">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">Media Sosial</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Ikuti kami di media sosial untuk mendapatkan informasi terbaru
-            </p>
-            <SocialMediaLinks 
-              settings={settings} 
-              showTitle={false} 
-              iconSize="text-3xl"
-              className="text-gray-700"
-            />
-          </div>
-        </div>
-
-        {/* Additional Info */}
-        <div className="mt-12 text-center">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-3xl mx-auto">
-            <h3 className="font-semibold text-lg text-blue-900 mb-2">Jam Pelayanan</h3>
-            <p className="text-blue-800">
-              Senin - Jumat: 08:00 - 16:00 WIB
-            </p>
-            <p className="text-blue-800">
-              Sabtu: 08:00 - 12:00 WIB
-            </p>
-            <p className="text-sm text-blue-600 mt-2">
-              (Tutup pada hari Minggu dan hari libur nasional)
-            </p>
           </div>
         </div>
       </div>

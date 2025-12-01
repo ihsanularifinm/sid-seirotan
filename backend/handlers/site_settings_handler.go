@@ -20,6 +20,13 @@ func NewSiteSettingsHandler(repo repositories.SiteSettingsRepository) *SiteSetti
 
 // GetAll - Public endpoint to get all settings
 func (h *SiteSettingsHandler) GetAll(c *gin.Context) {
+	// Auto-initialize if needed
+	if err := h.EnsureSettingsExist(); err != nil {
+		log.Printf("Failed to initialize settings: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize settings"})
+		return
+	}
+
 	settings, err := h.repo.GetAll()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch settings"})
@@ -44,6 +51,13 @@ func (h *SiteSettingsHandler) GetByGroup(c *gin.Context) {
 	group := c.Param("group")
 	if group == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Group parameter is required"})
+		return
+	}
+
+	// Auto-initialize if needed
+	if err := h.EnsureSettingsExist(); err != nil {
+		log.Printf("Failed to initialize settings: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to initialize settings"})
 		return
 	}
 
@@ -149,6 +163,75 @@ func (h *SiteSettingsHandler) BulkUpdate(c *gin.Context) {
 		return
 	}
 
+	// Validate settings
+	for _, setting := range settings {
+		if err := validateSetting(&setting); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+	}
+
+	// SYNC LOGIC: If profile settings are updated, sync to general settings
+	// Create a map of settings being updated for easy lookup
+	updatedSettingsMap := make(map[string]string)
+	for _, s := range settings {
+		if s.SettingValue != nil {
+			updatedSettingsMap[s.SettingKey] = *s.SettingValue
+		}
+	}
+
+	// Check if we need to add/update general settings based on profile changes
+	var additionalSettings []models.SiteSetting
+
+	// 1. Sync village_name -> site_name
+	if val, ok := updatedSettingsMap["village_name"]; ok {
+		siteName := val // Use village name directly or format it
+		additionalSettings = append(additionalSettings, models.SiteSetting{
+			SettingKey:   "site_name",
+			SettingValue: &siteName,
+			SettingGroup: "general",
+		})
+	}
+
+	// 2. Sync village_district -> district
+	if val, ok := updatedSettingsMap["village_district"]; ok {
+		additionalSettings = append(additionalSettings, models.SiteSetting{
+			SettingKey:   "district",
+			SettingValue: &val,
+			SettingGroup: "general",
+		})
+	}
+
+	// 3. Sync village_regency -> regency
+	if val, ok := updatedSettingsMap["village_regency"]; ok {
+		additionalSettings = append(additionalSettings, models.SiteSetting{
+			SettingKey:   "regency",
+			SettingValue: &val,
+			SettingGroup: "general",
+		})
+	}
+
+	// 4. Sync village_address -> contact_address
+	if val, ok := updatedSettingsMap["village_address"]; ok {
+		additionalSettings = append(additionalSettings, models.SiteSetting{
+			SettingKey:   "contact_address",
+			SettingValue: &val,
+			SettingGroup: "general",
+		})
+	}
+
+	// Append additional settings to the main list
+	// We need to handle duplicates if the user sent both (though unlikely with current UI)
+	// The BulkUpsert should handle it if we just append, as later ones might overwrite or we should check
+	// But to be safe, let's just append. If the user explicitly sent site_name, it will be in 'settings'.
+	// If we append 'additionalSettings', and they have same key, the last one usually wins in Upsert or it depends on implementation.
+	// However, since we want the Sync to happen, we should probably ensure these values take precedence OR 
+	// only add them if they are NOT in the original request.
+	// BUT, the requirement is "automatically update". So if I change Village Name, Site Name MUST change.
+	// So we should append them.
+	
+	settings = append(settings, additionalSettings...)
+
 	if err := h.repo.BulkUpsert(settings); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update settings"})
 		return
@@ -170,10 +253,37 @@ func (h *SiteSettingsHandler) Upsert(c *gin.Context) {
 		return
 	}
 
+	// Validate setting
+	if err := validateSetting(&setting); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
 	if err := h.repo.Upsert(&setting); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save setting"})
 		return
 	}
 
 	c.JSON(http.StatusOK, setting)
+}
+
+// validateSetting validates a setting based on its key
+func validateSetting(setting *models.SiteSetting) error {
+	// Validate district and regency fields (max 255 characters)
+	if setting.SettingKey == "district" || setting.SettingKey == "regency" {
+		if setting.SettingValue != nil && len(*setting.SettingValue) > 255 {
+			return &ValidationError{Message: setting.SettingKey + " must be 255 characters or less"}
+		}
+	}
+	
+	return nil
+}
+
+// ValidationError represents a validation error
+type ValidationError struct {
+	Message string
+}
+
+func (e *ValidationError) Error() string {
+	return e.Message
 }
