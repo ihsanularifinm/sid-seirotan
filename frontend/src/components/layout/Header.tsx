@@ -58,7 +58,8 @@ export default function Header() {
               alt={settings?.general?.site_name || 'Logo Desa'} 
               width={56} 
               height={56} 
-              className="h-14 w-auto object-contain" 
+              className="h-14 w-auto object-contain"
+              unoptimized={settings?.general?.site_logo?.includes('placehold.co') || !settings?.general?.site_logo}
             />
             <div>
               <span className="block font-bold text-base sm:text-lg text-gray-800">

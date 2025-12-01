@@ -69,6 +69,7 @@ export default function OfficialBioModal({ isOpen, onClose, official }: Official
                 width={200}
                 height={200}
                 className="w-48 h-48 rounded-lg object-cover shadow-md mx-auto md:mx-0"
+                unoptimized={official.photo_url?.includes('placehold.co')}
               />
             </div>
 

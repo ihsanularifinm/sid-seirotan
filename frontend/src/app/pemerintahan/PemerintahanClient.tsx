@@ -82,6 +82,7 @@ export default function PemerintahanClient({ sortedGroups, strukturImage, siteNa
                         width={150}
                         height={150}
                         className="w-36 h-36 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300"
+                        unoptimized={official.photo_url?.includes('placehold.co')}
                       />
                       {/* Hover overlay */}
                       <div className="absolute inset-0 w-36 h-36 mx-auto rounded-full bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
@@ -115,6 +116,7 @@ export default function PemerintahanClient({ sortedGroups, strukturImage, siteNa
               width={1200}
               height={800}
               className="w-full h-auto rounded"
+              unoptimized={strukturImage?.includes('placehold.co')}
             />
           </div>
         </div>
