@@ -58,14 +58,28 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-2xl mx-auto">
             {kepalaDesa && (
               <div className="text-center">
-                <Image src={getMediaUrl(kepalaDesa.photo_url)} alt={kepalaDesa.name} width={128} height={128} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white" />
+                <Image 
+                  src={getMediaUrl(kepalaDesa.photo_url)} 
+                  alt={kepalaDesa.name} 
+                  width={128} 
+                  height={128} 
+                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white"
+                  unoptimized={kepalaDesa.photo_url?.includes('placehold.co')}
+                />
                 <h3 className="font-bold text-lg text-gray-800">{kepalaDesa.name}</h3>
                 <p className="text-sm text-gray-500">{kepalaDesa.position}</p>
               </div>
             )}
             {sekretarisDesa && (
               <div className="text-center">
-                <Image src={getMediaUrl(sekretarisDesa.photo_url)} alt={sekretarisDesa.name} width={128} height={128} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white" />
+                <Image 
+                  src={getMediaUrl(sekretarisDesa.photo_url)} 
+                  alt={sekretarisDesa.name} 
+                  width={128} 
+                  height={128} 
+                  className="w-32 h-32 rounded-full mx-auto mb-4 object-cover shadow-lg border-4 border-white"
+                  unoptimized={sekretarisDesa.photo_url?.includes('placehold.co')}
+                />
                 <h3 className="font-bold text-lg text-gray-800">{sekretarisDesa.name}</h3>
                 <p className="text-sm text-gray-500">{sekretarisDesa.position}</p>
               </div>
@@ -80,7 +94,14 @@ export default async function Home() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {latestNews.map((item) => (
             <Link href={`/berita/${item.slug}`} key={item.id} className="block bg-white rounded-lg shadow-md overflow-hidden group">
-              <Image src={getMediaUrl(item.featured_image_url)} alt={item.title} width={400} height={250} className="w-full h-48 object-cover group-hover:opacity-80 transition" />
+              <Image 
+                src={getMediaUrl(item.featured_image_url)} 
+                alt={item.title} 
+                width={400} 
+                height={250} 
+                className="w-full h-48 object-cover group-hover:opacity-80 transition"
+                unoptimized={item.featured_image_url?.includes('placehold.co')}
+              />
               <div className="p-6">
                 <p className="text-sm text-gray-500 mb-2">{new Date(item.created_at).toLocaleDateString()}</p>
                 <h3 className="text-lg font-semibold text-gray-800 group-hover:text-blue-600">{item.title}</h3>
