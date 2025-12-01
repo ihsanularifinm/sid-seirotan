@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'seirotan.desa.id',
       },
+      {
+        protocol: 'https',
+        hostname: 'placehold.co',
+      },
     ],
     // Disable image optimization for localhost to avoid 400 errors
     unoptimized: process.env.NODE_ENV === 'development',
